@@ -21,6 +21,14 @@ body {
   color: #1c2433;
 }
 
+/* Responsive: los hijos de una cuadrícula pueden encogerse (si no, una tabla ancha estira toda la página) */
+.grid > * {
+  min-width: 0;
+}
+body {
+  overflow-x: clip;
+}
+
 /* Cifras alineadas en columnas (montos, notas, fechas) */
 table,
 .tabular-nums {

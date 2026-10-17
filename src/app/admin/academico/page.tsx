@@ -41,7 +41,7 @@ export default async function AcademicoPage({ searchParams }: { searchParams: Pr
         <p className="text-sm text-slate-500">Ciclos, grados, secciones, cursos y maestros asignados.</p>
       </div>
 
-      <nav className="flex gap-1 border-b border-slate-200 text-sm" aria-label="Secciones de la página">
+      <nav className="flex gap-1 overflow-x-auto whitespace-nowrap border-b border-slate-200 text-sm" aria-label="Secciones de la página">
         {([["ciclos", "Ciclos"], ["grados", "Grados y cursos"], ["secciones", "Secciones y maestros"]] as const).map(([k, t]) => (
           <Link key={k} href={`/admin/academico?tab=${k}`} aria-current={tab === k ? "page" : undefined}
             className={`-mb-px border-b-2 px-4 py-2 ${tab === k ? "border-blue-700 font-semibold text-blue-700" : "border-transparent text-slate-500 hover:text-slate-800"}`}>
