@@ -5,9 +5,5 @@ export default async function Page({
 }: { params: Promise<{ asignacionId: string }>; searchParams: Promise<{ periodo?: string }> }) {
   const id = Number((await params).asignacionId);
   const { periodo } = await searchParams;
-  return (
-    <main className="mx-auto max-w-5xl p-6">
-      <CapturaNotas asignacionId={id} periodoParam={periodo} base="/maestro/notas" volver="/maestro" />
-    </main>
-  );
+  return <CapturaNotas asignacionId={id} periodoParam={periodo} base="/maestro/notas" volver="/maestro" />;
 }
