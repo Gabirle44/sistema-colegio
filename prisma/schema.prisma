@@ -1,0 +1,265 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────── Enums ─────────────
+enum Rol {
+  ADMIN
+  MAESTRO
+}
+
+enum Concepto {
+  INSCRIPCION
+  MENSUALIDAD
+  OTRO
+}
+
+enum EstadoCargo {
+  PENDIENTE
+  PARCIAL
+  PAGADO
+}
+
+enum MetodoPago {
+  EFECTIVO
+  TRANSFERENCIA
+  DEPOSITO
+  CHEQUE
+}
+
+// ───────────── Usuarios y maestros ─────────────
+model Usuario {
+  id           Int      @id @default(autoincrement())
+  nombre       String
+  email        String   @unique
+  passwordHash String
+  rol          Rol
+  activo       Boolean  @default(true)
+  creadoEn     DateTime @default(now())
+
+  maestro  Maestro?
+  pagos    Pago[]
+  recibos  Recibo[]
+  pagosMaestros PagoMaestro[]
+
+  @@map("usuarios")
+}
+
+model Maestro {
+  id             Int      @id @default(autoincrement())
+  usuarioId      Int?     @unique
+  nombres        String
+  apellidos      String
+  telefono       String?
+  salarioMensual Decimal  @db.Decimal(10, 2)
+  activo         Boolean  @default(true)
+
+  usuario      Usuario?          @relation(fields: [usuarioId], references: [id])
+  asignaciones AsignacionCurso[]
+  pagos        PagoMaestro[]
+  notas        Nota[]
+
+  @@map("maestros")
+}
+
+// ───────────── Estructura académica ─────────────
+model CicloEscolar {
+  id      Int     @id @default(autoincrement())
+  anio    Int     @unique
+  activo  Boolean @default(false)
+
+  secciones     Seccion[]
+  inscripciones Inscripcion[]
+  periodos      Periodo[]
+
+  @@map("ciclos_escolares")
+}
+
+model Grado {
+  id     Int    @id @default(autoincrement())
+  nombre String @unique
+  orden  Int    @default(0)
+
+  secciones Seccion[]
+  cursos    Curso[]
+
+  @@map("grados")
+}
+
+model Seccion {
+  id      Int    @id @default(autoincrement())
+  nombre  String
+  gradoId Int
+  cicloId Int
+
+  grado         Grado             @relation(fields: [gradoId], references: [id])
+  ciclo         CicloEscolar      @relation(fields: [cicloId], references: [id])
+  inscripciones Inscripcion[]
+  asignaciones  AsignacionCurso[]
+
+  @@unique([gradoId, cicloId, nombre])
+  @@map("secciones")
+}
+
+model Curso {
+  id      Int    @id @default(autoincrement())
+  nombre  String
+  gradoId Int
+
+  grado        Grado             @relation(fields: [gradoId], references: [id])
+  asignaciones AsignacionCurso[]
+  notas        Nota[]
+
+  @@unique([gradoId, nombre])
+  @@map("cursos")
+}
+
+// Un maestro imparte un curso en una sección
+model AsignacionCurso {
+  id        Int @id @default(autoincrement())
+  maestroId Int
+  cursoId   Int
+  seccionId Int
+
+  maestro Maestro @relation(fields: [maestroId], references: [id])
+  curso   Curso   @relation(fields: [cursoId], references: [id])
+  seccion Seccion @relation(fields: [seccionId], references: [id])
+
+  @@unique([cursoId, seccionId])
+  @@map("asignaciones_curso")
+}
+
+model Periodo {
+  id      Int     @id @default(autoincrement())
+  cicloId Int
+  numero  Int
+  nombre  String
+  abierto Boolean @default(true)
+
+  ciclo CicloEscolar @relation(fields: [cicloId], references: [id])
+  notas Nota[]
+
+  @@unique([cicloId, numero])
+  @@map("periodos")
+}
+
+// ───────────── Alumnos e inscripciones ─────────────
+model Alumno {
+  id                 Int       @id @default(autoincrement())
+  carnet             String    @unique
+  nombres            String
+  apellidos          String
+  fechaNacimiento    DateTime?
+  encargadoNombre    String
+  encargadoTelefono  String?
+  activo             Boolean   @default(true)
+
+  inscripciones Inscripcion[]
+
+  @@map("alumnos")
+}
+
+model Inscripcion {
+  id                Int      @id @default(autoincrement())
+  alumnoId          Int
+  seccionId         Int
+  cicloId           Int
+  fecha             DateTime @default(now())
+  montoInscripcion  Decimal  @db.Decimal(10, 2)
+  montoMensualidad  Decimal  @db.Decimal(10, 2)
+
+  alumno  Alumno       @relation(fields: [alumnoId], references: [id])
+  seccion Seccion      @relation(fields: [seccionId], references: [id])
+  ciclo   CicloEscolar @relation(fields: [cicloId], references: [id])
+  cargos  Cargo[]
+  notas   Nota[]
+
+  @@unique([alumnoId, cicloId])
+  @@map("inscripciones")
+}
+
+// ───────────── Cobros ─────────────
+model Cargo {
+  id               Int         @id @default(autoincrement())
+  inscripcionId    Int
+  concepto         Concepto
+  mes              Int?
+  monto            Decimal     @db.Decimal(10, 2)
+  fechaVencimiento DateTime
+  estado           EstadoCargo @default(PENDIENTE)
+
+  inscripcion Inscripcion @relation(fields: [inscripcionId], references: [id])
+  pagos       Pago[]
+
+  @@index([inscripcionId, estado])
+  @@map("cargos")
+}
+
+model Pago {
+  id         Int        @id @default(autoincrement())
+  cargoId    Int
+  monto      Decimal    @db.Decimal(10, 2)
+  fecha      DateTime   @default(now())
+  metodo     MetodoPago
+  registradoPorId Int
+
+  cargo         Cargo   @relation(fields: [cargoId], references: [id])
+  registradoPor Usuario @relation(fields: [registradoPorId], references: [id])
+  recibo        Recibo?
+
+  @@map("pagos")
+}
+
+model Recibo {
+  id        Int      @id @default(autoincrement())
+  numero    Int      @unique @default(autoincrement())
+  pagoId    Int      @unique
+  fecha     DateTime @default(now())
+  emitidoPorId Int
+
+  pago      Pago    @relation(fields: [pagoId], references: [id])
+  emitidoPor Usuario @relation(fields: [emitidoPorId], references: [id])
+
+  @@map("recibos")
+}
+
+model PagoMaestro {
+  id              Int      @id @default(autoincrement())
+  maestroId       Int
+  mes             Int
+  anio            Int
+  monto           Decimal  @db.Decimal(10, 2)
+  fecha           DateTime @default(now())
+  observaciones   String?
+  registradoPorId Int
+
+  maestro       Maestro @relation(fields: [maestroId], references: [id])
+  registradoPor Usuario @relation(fields: [registradoPorId], references: [id])
+
+  @@unique([maestroId, mes, anio])
+  @@map("pagos_maestros")
+}
+
+// ───────────── Notas ─────────────
+model Nota {
+  id              Int      @id @default(autoincrement())
+  inscripcionId   Int
+  cursoId         Int
+  periodoId       Int
+  valor           Decimal  @db.Decimal(5, 2)
+  registradaPorId Int
+  actualizadaEn   DateTime @updatedAt
+
+  inscripcion   Inscripcion @relation(fields: [inscripcionId], references: [id])
+  curso         Curso       @relation(fields: [cursoId], references: [id])
+  periodo       Periodo     @relation(fields: [periodoId], references: [id])
+  registradaPor Maestro     @relation(fields: [registradaPorId], references: [id])
+
+  @@unique([inscripcionId, cursoId, periodoId])
+  @@map("notas")
+}
