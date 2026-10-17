@@ -39,6 +39,26 @@ async function main() {
     },
   });
 
+  // Datos mínimos para poder probar inscripciones y cobros
+  // (se reemplazan cuando el equipo termine los CRUD de ciclos, grados y secciones)
+  const ciclo = await prisma.cicloEscolar.upsert({
+    where: { anio: 2026 },
+    update: {},
+    create: { anio: 2026, activo: true },
+  });
+  const grado = await prisma.grado.upsert({
+    where: { nombre: "Primero Básico" },
+    update: {},
+    create: { nombre: "Primero Básico", orden: 1 },
+  });
+  const existe = await prisma.seccion.findFirst({
+    where: { nombre: "A", gradoId: grado.id, cicloId: ciclo.id },
+  });
+  if (!existe) {
+    await prisma.seccion.create({ data: { nombre: "A", gradoId: grado.id, cicloId: ciclo.id } });
+  }
+  await prisma.configuracion.upsert({ where: { id: 1 }, update: {}, create: { id: 1 } });
+
   console.log("Usuarios de prueba listos: admin@colegio.test y maestro@colegio.test");
 }
 

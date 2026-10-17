@@ -17,12 +17,14 @@ enum Concepto {
   INSCRIPCION
   MENSUALIDAD
   OTRO
+  RECARGO
 }
 
 enum EstadoCargo {
   PENDIENTE
   PARCIAL
   PAGADO
+  ANULADO
 }
 
 enum MetodoPago {
@@ -30,6 +32,11 @@ enum MetodoPago {
   TRANSFERENCIA
   DEPOSITO
   CHEQUE
+}
+
+enum EstadoRecibo {
+  VIGENTE
+  ANULADO
 }
 
 // ───────────── Usuarios y maestros ─────────────
@@ -42,10 +49,11 @@ model Usuario {
   activo       Boolean  @default(true)
   creadoEn     DateTime @default(now())
 
-  maestro  Maestro?
-  pagos    Pago[]
-  recibos  Recibo[]
-  pagosMaestros PagoMaestro[]
+  maestro         Maestro?
+  recibosEmitidos Recibo[]      @relation("ReciboEmitidoPor")
+  recibosAnulados Recibo[]      @relation("ReciboAnuladoPor")
+  pagosMaestros   PagoMaestro[]
+  bitacora        Bitacora[]
 
   @@map("usuarios")
 }
@@ -152,11 +160,14 @@ model Periodo {
 model Alumno {
   id                 Int       @id @default(autoincrement())
   carnet             String    @unique
+  cui                String?   @unique
   nombres            String
   apellidos          String
   fechaNacimiento    DateTime?
+  telefono           String?
   encargadoNombre    String
   encargadoTelefono  String?
+  encargadoCorreo    String?
   activo             Boolean   @default(true)
 
   inscripciones Inscripcion[]
@@ -165,18 +176,22 @@ model Alumno {
 }
 
 model Inscripcion {
-  id                Int      @id @default(autoincrement())
-  alumnoId          Int
-  seccionId         Int
-  cicloId           Int
-  fecha             DateTime @default(now())
-  montoInscripcion  Decimal  @db.Decimal(10, 2)
-  montoMensualidad  Decimal  @db.Decimal(10, 2)
+  id                   Int      @id @default(autoincrement())
+  alumnoId             Int
+  seccionId            Int
+  cicloId              Int
+  fecha                DateTime @default(now())
+  montoInscripcion     Decimal  @db.Decimal(10, 2)
+  montoMensualidad     Decimal  @db.Decimal(10, 2)
+  descuentoInscripcion Decimal  @default(0) @db.Decimal(10, 2)
+  descuentoMensualidad Decimal  @default(0) @db.Decimal(10, 2)
+  motivoDescuento      String?
 
   alumno  Alumno       @relation(fields: [alumnoId], references: [id])
   seccion Seccion      @relation(fields: [seccionId], references: [id])
   ciclo   CicloEscolar @relation(fields: [cicloId], references: [id])
   cargos  Cargo[]
+  recibos Recibo[]
   notas   Nota[]
 
   @@unique([alumnoId, cicloId])
@@ -184,48 +199,102 @@ model Inscripcion {
 }
 
 // ───────────── Cobros ─────────────
+// Un cargo es algo que el alumno debe: inscripción, una mensualidad, un cobro extra o un recargo por mora.
 model Cargo {
   id               Int         @id @default(autoincrement())
   inscripcionId    Int
   concepto         Concepto
+  descripcion      String
   mes              Int?
   monto            Decimal     @db.Decimal(10, 2)
+  descuento        Decimal     @default(0) @db.Decimal(10, 2)
+  pagado           Decimal     @default(0) @db.Decimal(10, 2)
   fechaVencimiento DateTime
   estado           EstadoCargo @default(PENDIENTE)
+  recargoDeId      Int?        @unique
+  creadoEn         DateTime    @default(now())
 
-  inscripcion Inscripcion @relation(fields: [inscripcionId], references: [id])
-  pagos       Pago[]
+  inscripcion Inscripcion     @relation(fields: [inscripcionId], references: [id])
+  recargoDe   Cargo?          @relation("RecargoMora", fields: [recargoDeId], references: [id])
+  recargo     Cargo?          @relation("RecargoMora")
+  detalles    ReciboDetalle[]
 
   @@index([inscripcionId, estado])
+  @@index([fechaVencimiento])
   @@map("cargos")
 }
 
-model Pago {
-  id         Int        @id @default(autoincrement())
-  cargoId    Int
-  monto      Decimal    @db.Decimal(10, 2)
-  fecha      DateTime   @default(now())
-  metodo     MetodoPago
-  registradoPorId Int
+// Un recibo puede cubrir varios cargos (por ejemplo, varios meses pagados a la vez).
+model Recibo {
+  id              Int          @id @default(autoincrement())
+  serie           String       @default("A")
+  numero          Int          @unique @default(autoincrement())
+  inscripcionId   Int
+  fecha           DateTime     @default(now())
+  total           Decimal      @db.Decimal(10, 2)
+  metodo          MetodoPago
+  referencia      String?
+  observaciones   String?
+  estado          EstadoRecibo @default(VIGENTE)
+  motivoAnulacion String?
+  anuladoEn       DateTime?
+  anuladoPorId    Int?
+  emitidoPorId    Int
 
-  cargo         Cargo   @relation(fields: [cargoId], references: [id])
-  registradoPor Usuario @relation(fields: [registradoPorId], references: [id])
-  recibo        Recibo?
+  inscripcion Inscripcion     @relation(fields: [inscripcionId], references: [id])
+  emitidoPor  Usuario         @relation("ReciboEmitidoPor", fields: [emitidoPorId], references: [id])
+  anuladoPor  Usuario?        @relation("ReciboAnuladoPor", fields: [anuladoPorId], references: [id])
+  detalles    ReciboDetalle[]
 
-  @@map("pagos")
+  @@index([fecha])
+  @@index([inscripcionId])
+  @@map("recibos")
 }
 
-model Recibo {
-  id        Int      @id @default(autoincrement())
-  numero    Int      @unique @default(autoincrement())
-  pagoId    Int      @unique
-  fecha     DateTime @default(now())
-  emitidoPorId Int
+model ReciboDetalle {
+  id       Int     @id @default(autoincrement())
+  reciboId Int
+  cargoId  Int
+  monto    Decimal @db.Decimal(10, 2)
 
-  pago      Pago    @relation(fields: [pagoId], references: [id])
-  emitidoPor Usuario @relation(fields: [emitidoPorId], references: [id])
+  recibo Recibo @relation(fields: [reciboId], references: [id], onDelete: Cascade)
+  cargo  Cargo  @relation(fields: [cargoId], references: [id])
 
-  @@map("recibos")
+  @@index([reciboId])
+  @@index([cargoId])
+  @@map("recibo_detalles")
+}
+
+// Datos del colegio y reglas de cobro (una sola fila, id = 1)
+model Configuracion {
+  id                    Int     @id @default(1)
+  nombreColegio         String  @default("Colegio Nuevo Horizonte")
+  direccion             String  @default("")
+  telefono              String  @default("")
+  serieRecibo           String  @default("A")
+  cantidadMensualidades Int     @default(10)
+  mesInicio             Int     @default(1)
+  diaVencimiento        Int     @default(5)
+  diasGracia            Int     @default(0)
+  recargoMora           Decimal @default(0) @db.Decimal(10, 2)
+
+  @@map("configuracion")
+}
+
+// Registro de quién hizo qué
+model Bitacora {
+  id         Int      @id @default(autoincrement())
+  usuarioId  Int
+  accion     String
+  entidad    String
+  entidadId  Int?
+  detalle    String?
+  creadoEn   DateTime @default(now())
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@index([creadoEn])
+  @@map("bitacora")
 }
 
 model PagoMaestro {
