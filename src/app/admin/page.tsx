@@ -1,30 +1,35 @@
-import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { obtenerSesion } from "@/lib/session";
-import { logout } from "../login/actions";
+import Link from "next/link";
 
-export default async function AdminPage() {
-  const sesion = await obtenerSesion();
-  if (!sesion || sesion.rol !== "ADMIN") redirect("/login");
+const modulos = [
+  { nombre: "Alumnos", href: "/admin/alumnos", detalle: "Registro, búsqueda y estado de alumnos" },
+  { nombre: "Inscripciones y cobros", href: null, detalle: "Próximamente" },
+  { nombre: "Pagos y recibos", href: null, detalle: "Próximamente" },
+  { nombre: "Notas y boletas", href: null, detalle: "Próximamente" },
+];
 
-  const usuario = await prisma.usuario.findUnique({ where: { id: sesion.userId } });
-
+export default function AdminPage() {
   return (
-    <main className="mx-auto max-w-4xl p-8">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">Panel del administrador</h1>
-          <p className="text-slate-500">Bienvenido, {usuario?.nombre}</p>
-        </div>
-        <form action={logout}>
-          <button className="rounded-lg border border-slate-300 px-4 py-2 text-sm hover:bg-slate-100">
-            Cerrar sesión
-          </button>
-        </form>
-      </header>
-      <p className="mt-8 text-slate-600">
-        Aquí irán los módulos de alumnos, cobros, pagos, recibos y reportes.
-      </p>
-    </main>
+    <div>
+      <h1 className="text-2xl font-bold text-slate-800">Panel del administrador</h1>
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        {modulos.map((m) =>
+          m.href ? (
+            <Link
+              key={m.nombre}
+              href={m.href}
+              className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-blue-600"
+            >
+              <h2 className="font-semibold text-slate-800">{m.nombre}</h2>
+              <p className="mt-1 text-sm text-slate-500">{m.detalle}</p>
+            </Link>
+          ) : (
+            <div key={m.nombre} className="rounded-xl border border-dashed border-slate-300 p-5 opacity-60">
+              <h2 className="font-semibold text-slate-700">{m.nombre}</h2>
+              <p className="mt-1 text-sm text-slate-500">{m.detalle}</p>
+            </div>
+          ),
+        )}
+      </div>
+    </div>
   );
 }
