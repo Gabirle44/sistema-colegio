@@ -20,6 +20,7 @@ export default async function AlumnosPage({ searchParams }: { searchParams: Sear
       ? {
           OR: [
             { carnet: { contains: termino, mode: "insensitive" } },
+            { cui: { contains: termino } },
             { nombres: { contains: termino, mode: "insensitive" } },
             { apellidos: { contains: termino, mode: "insensitive" } },
             { encargadoNombre: { contains: termino, mode: "insensitive" } },
@@ -65,7 +66,7 @@ export default async function AlumnosPage({ searchParams }: { searchParams: Sear
         <input
           name="q"
           defaultValue={termino}
-          placeholder="Buscar por carnet, nombre o encargado"
+          placeholder="Buscar por carnet, CUI, nombre o encargado"
           className="w-full max-w-sm rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-600"
         />
         <select
@@ -86,10 +87,9 @@ export default async function AlumnosPage({ searchParams }: { searchParams: Sear
         <table className="w-full text-left text-sm">
           <thead className="bg-slate-100 text-slate-600">
             <tr>
-              <th className="px-4 py-3">Carnet</th>
+              <th className="px-4 py-3">Carnet / CUI</th>
               <th className="px-4 py-3">Alumno</th>
               <th className="px-4 py-3">Encargado</th>
-              <th className="px-4 py-3">Teléfono</th>
               <th className="px-4 py-3">Estado</th>
               <th className="px-4 py-3 text-right">Acciones</th>
             </tr>
@@ -97,19 +97,29 @@ export default async function AlumnosPage({ searchParams }: { searchParams: Sear
           <tbody>
             {alumnos.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
                   No se encontraron alumnos.
                 </td>
               </tr>
             )}
             {alumnos.map((a) => (
               <tr key={a.id} className="border-t border-slate-100">
-                <td className="px-4 py-3 font-mono">{a.carnet}</td>
                 <td className="px-4 py-3">
-                  {a.apellidos}, {a.nombres}
+                  <div className="font-medium tabular-nums">{a.carnet}</div>
+                  <div className="text-xs text-slate-400 tabular-nums">{a.cui ?? "Sin CUI"}</div>
                 </td>
-                <td className="px-4 py-3">{a.encargadoNombre}</td>
-                <td className="px-4 py-3">{a.encargadoTelefono ?? "—"}</td>
+                <td className="px-4 py-3">
+                  <div>
+                    {a.apellidos}, {a.nombres}
+                  </div>
+                  <div className="text-xs text-slate-400">{a.telefono ?? "Sin teléfono"}</div>
+                </td>
+                <td className="px-4 py-3">
+                  <div>{a.encargadoNombre}</div>
+                  <div className="text-xs text-slate-400">
+                    {[a.encargadoTelefono, a.encargadoCorreo].filter(Boolean).join(" · ") || "Sin contacto"}
+                  </div>
+                </td>
                 <td className="px-4 py-3">
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${
