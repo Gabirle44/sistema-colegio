@@ -59,6 +59,36 @@ async function main() {
   }
   await prisma.configuracion.upsert({ where: { id: 1 }, update: {}, create: { id: 1 } });
 
+  // Periodos, cursos y asignación al maestro demo (para probar notas y boletas)
+  for (const [i, nombre] of ["Bimestre I", "Bimestre II", "Bimestre III", "Bimestre IV"].entries()) {
+    await prisma.periodo.upsert({
+      where: { cicloId_numero: { cicloId: ciclo.id, numero: i + 1 } },
+      update: {},
+      create: { cicloId: ciclo.id, numero: i + 1, nombre },
+    });
+  }
+  const cursos = [];
+  for (const nombre of ["Matemática", "Comunicación y Lenguaje", "Ciencias Naturales", "Estudios Sociales", "Inglés"]) {
+    cursos.push(
+      await prisma.curso.upsert({
+        where: { gradoId_nombre: { gradoId: grado.id, nombre } },
+        update: {},
+        create: { gradoId: grado.id, nombre },
+      }),
+    );
+  }
+  const seccionA = await prisma.seccion.findFirstOrThrow({
+    where: { nombre: "A", gradoId: grado.id, cicloId: ciclo.id },
+  });
+  const maestroDemo = await prisma.maestro.findFirstOrThrow({ where: { usuarioId: usuarioMaestro.id } });
+  for (const curso of cursos.slice(0, 3)) {
+    await prisma.asignacionCurso.upsert({
+      where: { cursoId_seccionId: { cursoId: curso.id, seccionId: seccionA.id } },
+      update: {},
+      create: { maestroId: maestroDemo.id, cursoId: curso.id, seccionId: seccionA.id },
+    });
+  }
+
   console.log("Usuarios de prueba listos: admin@colegio.test y maestro@colegio.test");
 }
 

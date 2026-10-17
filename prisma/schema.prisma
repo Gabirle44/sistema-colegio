@@ -151,6 +151,7 @@ model Periodo {
 
   ciclo CicloEscolar @relation(fields: [cicloId], references: [id])
   notas Nota[]
+  boletas BoletaPeriodo[]
 
   @@unique([cicloId, numero])
   @@map("periodos")
@@ -193,6 +194,7 @@ model Inscripcion {
   cargos  Cargo[]
   recibos Recibo[]
   notas   Nota[]
+  boletas BoletaPeriodo[]
 
   @@unique([alumnoId, cicloId])
   @@map("inscripciones")
@@ -277,6 +279,9 @@ model Configuracion {
   diaVencimiento        Int     @default(5)
   diasGracia            Int     @default(0)
   recargoMora           Decimal @default(0) @db.Decimal(10, 2)
+  notaMinima            Int     @default(60)
+  zonaMax               Int     @default(70) // el examen vale 100 - zonaMax
+  bloquearBoletaMora    Boolean @default(false)
 
   @@map("configuracion")
 }
@@ -320,15 +325,35 @@ model Nota {
   inscripcionId   Int
   cursoId         Int
   periodoId       Int
-  valor           Decimal  @db.Decimal(5, 2)
-  registradaPorId Int
+  zona            Decimal? @db.Decimal(5, 2)
+  examen          Decimal? @db.Decimal(5, 2)
+  valor           Decimal  @db.Decimal(5, 2) // total = zona + examen
+  observacion     String?
+  registradaPorId Int?
   actualizadaEn   DateTime @updatedAt
 
   inscripcion   Inscripcion @relation(fields: [inscripcionId], references: [id])
   curso         Curso       @relation(fields: [cursoId], references: [id])
   periodo       Periodo     @relation(fields: [periodoId], references: [id])
-  registradaPor Maestro     @relation(fields: [registradaPorId], references: [id])
+  registradaPor Maestro?    @relation(fields: [registradaPorId], references: [id])
 
   @@unique([inscripcionId, cursoId, periodoId])
   @@map("notas")
 }
+
+// Datos de la boleta por periodo: asistencia, conducta y comentario general
+model BoletaPeriodo {
+  id            Int     @id @default(autoincrement())
+  inscripcionId Int
+  periodoId     Int
+  inasistencias Int     @default(0)
+  conducta      String?
+  comentario    String?
+
+  inscripcion Inscripcion @relation(fields: [inscripcionId], references: [id])
+  periodo     Periodo     @relation(fields: [periodoId], references: [id])
+
+  @@unique([inscripcionId, periodoId])
+  @@map("boletas_periodo")
+}
+

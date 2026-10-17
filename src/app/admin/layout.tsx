@@ -19,6 +19,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               ["Alumnos", "/admin/alumnos"],
               ["Cobros", "/admin/cobros"],
               ["Recibos", "/admin/recibos"],
+              ["Notas", "/admin/notas"],
+              ["Boletas", "/admin/boletas"],
               ["Morosos", "/admin/morosos"],
               ["Caja", "/admin/caja"],
               ["Reportes", "/admin/reportes"],

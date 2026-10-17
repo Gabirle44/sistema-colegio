@@ -24,6 +24,9 @@ export async function guardarConfiguracion(_prev: AccionState, fd: FormData): Pr
   const dia = entero(fd.get("diaVencimiento"), 1, 28);
   const gracia = entero(fd.get("diasGracia"), 0, 60);
   const recargo = parseCentavos(fd.get("recargoMora"), { vacioEsCero: true });
+  const notaMinima = entero(fd.get("notaMinima"), 1, 100);
+  const zonaMax = entero(fd.get("zonaMax"), 0, 100);
+  const bloquearBoletaMora = fd.get("bloquearBoletaMora") === "on";
 
   if (nombreColegio.length < 3) return { error: "Escribe el nombre del colegio." };
   if (!/^[A-Z0-9]{1,3}$/.test(serie)) return { error: "La serie del recibo debe ser de 1 a 3 letras o números." };
@@ -32,11 +35,14 @@ export async function guardarConfiguracion(_prev: AccionState, fd: FormData): Pr
   if (dia === null) return { error: "Día de vencimiento: entre 1 y 28." };
   if (gracia === null) return { error: "Días de gracia: entre 0 y 60." };
   if (recargo === null) return { error: "El recargo por mora debe ser un número válido." };
+  if (notaMinima === null) return { error: "Nota mínima para aprobar: entre 1 y 100." };
+  if (zonaMax === null) return { error: "Puntos de zona: entre 0 y 100 (el examen vale el resto)." };
 
   const data = {
     nombreColegio, direccion, telefono, serieRecibo: serie,
     cantidadMensualidades: cantidad, mesInicio, diaVencimiento: dia, diasGracia: gracia,
     recargoMora: (recargo / 100).toFixed(2),
+    notaMinima, zonaMax, bloquearBoletaMora,
   };
   try {
     await prisma.$transaction(async (tx) => {

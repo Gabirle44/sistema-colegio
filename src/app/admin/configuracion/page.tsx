@@ -30,6 +30,15 @@ export default async function ConfiguracionPage() {
           {campo("Días de gracia", "diasGracia", c.diasGracia, "Antes de considerarse moroso")}
           {campo("Recargo por mora (Q)", "recargoMora", Number(c.recargoMora).toFixed(2), "0 = sin recargo. Se cobra por mensualidad vencida, si la caja lo marca.")}
         </div>
+        <h2 className="border-t border-slate-200 pt-4 font-semibold text-slate-800">Notas y boletas</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {campo("Nota mínima para aprobar", "notaMinima", c.notaMinima, "Ej. 60")}
+          {campo("Puntos de zona", "zonaMax", c.zonaMax, "Ej. 70 → el examen vale 30")}
+        </div>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" name="bloquearBoletaMora" defaultChecked={c.bloquearBoletaMora} />
+          Retener la boleta de alumnos con cuotas vencidas (el admin puede autorizarla caso por caso)
+        </label>
       </FormConAviso>
     </div>
   );

@@ -4,12 +4,14 @@ const modulos = [
   { nombre: "Alumnos", href: "/admin/alumnos", detalle: "Registro, búsqueda y estado de alumnos" },
   { nombre: "Cobros", href: "/admin/cobros", detalle: "Inscripciones, estados de cuenta y pagos" },
   { nombre: "Recibos", href: "/admin/recibos", detalle: "Historial, PDF y anulaciones" },
+  { nombre: "Notas", href: "/admin/notas", detalle: "Periodos, avance por curso y corrección de notas" },
+  { nombre: "Boletas", href: "/admin/boletas", detalle: "Cuadro de notas, boletas PDF y cuadro de honor" },
   { nombre: "Morosos", href: "/admin/morosos", detalle: "Cuotas vencidas y recordatorios por WhatsApp" },
   { nombre: "Cierre de caja", href: "/admin/caja", detalle: "Ingresos del día por método y cajero" },
   { nombre: "Reportes", href: "/admin/reportes", detalle: "Exportar a Excel (CSV)" },
   { nombre: "Configuración", href: "/admin/configuracion", detalle: "Cuotas, vencimientos, mora y datos del colegio" },
   { nombre: "Bitácora", href: "/admin/bitacora", detalle: "Auditoría de movimientos" },
-  { nombre: "Notas y boletas", href: null, detalle: "Próximamente" },
+
 ];
 
 export default function AdminPage() {
