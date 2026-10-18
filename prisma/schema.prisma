@@ -134,9 +134,10 @@ model AsignacionCurso {
   cursoId   Int
   seccionId Int
 
-  maestro Maestro @relation(fields: [maestroId], references: [id])
-  curso   Curso   @relation(fields: [cursoId], references: [id])
-  seccion Seccion @relation(fields: [seccionId], references: [id])
+  maestro     Maestro     @relation(fields: [maestroId], references: [id])
+  curso       Curso       @relation(fields: [cursoId], references: [id])
+  seccion     Seccion     @relation(fields: [seccionId], references: [id])
+  actividades Actividad[]
 
   @@unique([cursoId, seccionId])
   @@map("asignaciones_curso")
@@ -149,9 +150,10 @@ model Periodo {
   nombre  String
   abierto Boolean @default(true)
 
-  ciclo CicloEscolar @relation(fields: [cicloId], references: [id])
-  notas Nota[]
-  boletas BoletaPeriodo[]
+  ciclo       CicloEscolar @relation(fields: [cicloId], references: [id])
+  notas       Nota[]
+  boletas     BoletaPeriodo[]
+  actividades Actividad[]
 
   @@unique([cicloId, numero])
   @@map("periodos")
@@ -195,6 +197,7 @@ model Inscripcion {
   recibos Recibo[]
   notas   Nota[]
   boletas BoletaPeriodo[]
+  notasActividad NotaActividad[]
 
   @@unique([alumnoId, cicloId])
   @@map("inscripciones")
@@ -357,3 +360,35 @@ model BoletaPeriodo {
   @@map("boletas_periodo")
 }
 
+
+// ───────────── Actividades de la zona ─────────────
+// El maestro desglosa la zona de un curso/sección/periodo en actividades con sus puntos (tarea, prueba corta...).
+model Actividad {
+  id           Int     @id @default(autoincrement())
+  asignacionId Int
+  periodoId    Int
+  nombre       String
+  puntos       Decimal @db.Decimal(5, 2)
+  orden        Int     @default(0)
+
+  asignacion AsignacionCurso @relation(fields: [asignacionId], references: [id], onDelete: Cascade)
+  periodo    Periodo         @relation(fields: [periodoId], references: [id], onDelete: Cascade)
+  notas      NotaActividad[]
+
+  @@index([asignacionId, periodoId])
+  @@map("actividades")
+}
+
+// Puntos que sacó un alumno en una actividad. La zona de la Nota es la suma de estos puntos.
+model NotaActividad {
+  id            Int     @id @default(autoincrement())
+  actividadId   Int
+  inscripcionId Int
+  puntos        Decimal @db.Decimal(5, 2)
+
+  actividad   Actividad   @relation(fields: [actividadId], references: [id], onDelete: Cascade)
+  inscripcion Inscripcion @relation(fields: [inscripcionId], references: [id])
+
+  @@unique([actividadId, inscripcionId])
+  @@map("notas_actividad")
+}
