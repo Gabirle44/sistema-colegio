@@ -52,7 +52,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       {/* Escritorio: barra lateral fija */}
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col bg-[#15233b] px-3 py-5 lg:flex">
         <div className="px-3 pb-6">{marca}</div>
-        <div className="flex-1 overflow-y-auto pr-1">
+        <div className="scroll-menu -mr-2 flex-1 overflow-y-auto pr-2">
           <SidebarNav avisos={avisos} />
         </div>
         {/* pb-14 deja libre la esquina donde Next muestra su botón "N" en desarrollo */}

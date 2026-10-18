@@ -21,14 +21,6 @@ body {
   color: #1c2433;
 }
 
-/* Responsive: los hijos de una cuadrícula pueden encogerse (si no, una tabla ancha estira toda la página) */
-.grid > * {
-  min-width: 0;
-}
-body {
-  overflow-x: clip;
-}
-
 /* Cifras alineadas en columnas (montos, notas, fechas) */
 table,
 .tabular-nums {
@@ -46,4 +38,30 @@ table,
     transition: none !important;
     animation: none !important;
   }
+}
+
+/* Barra de desplazamiento fina y discreta para el menú lateral (fondo oscuro) */
+.scroll-menu {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.2s;
+}
+.scroll-menu:hover {
+  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+}
+.scroll-menu::-webkit-scrollbar {
+  width: 6px;
+}
+.scroll-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-menu::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 999px;
+}
+.scroll-menu:hover::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+}
+.scroll-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
 }
