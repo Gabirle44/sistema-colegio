@@ -9,6 +9,8 @@ import { inputCls, tarjeta, td, th } from "@/lib/ui";
 import FormConAviso from "@/components/FormConAviso";
 import PagoForm from "./PagoForm";
 import { anularCargo, aplicarDescuento, crearCargoExtra } from "../actions";
+import { cambiarSeccion } from "./cambiarSeccion";
+import BotonVolver from "@/components/BotonVolver";
 
 const colorEstado: Record<string, string> = {
   PENDIENTE: "bg-slate-100 text-slate-700",
@@ -34,6 +36,10 @@ export default async function EstadoCuentaPage({ params }: { params: Promise<{ i
   });
   if (!ins) notFound();
   const cfg = await obtenerConfig();
+  const hermanas = await prisma.seccion.findMany({
+    where: { cicloId: ins.cicloId, gradoId: ins.seccion.gradoId, NOT: { id: ins.seccionId } },
+    orderBy: { nombre: "asc" },
+  });
   const r = resumenCuenta(ins.cargos, cfg.diasGracia);
   const a = ins.alumno;
 
@@ -52,24 +58,39 @@ export default async function EstadoCuentaPage({ params }: { params: Promise<{ i
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <Link href="/admin/cobros" className="text-sm text-blue-700 hover:underline">← Cobros</Link>
-          <h1 className="mt-1 text-2xl font-bold text-slate-800">{a.apellidos}, {a.nombres}</h1>
-          <p className="text-sm text-slate-500">
-            Carnet {a.carnet} · {ins.seccion.grado.nombre} {ins.seccion.nombre} · Ciclo {ins.ciclo.anio} · Encargado: {a.encargadoNombre}
-            {ins.motivoDescuento && <> · Descuento: {ins.motivoDescuento}</>}
-          </p>
-        </div>
-        <div className="flex gap-2 text-sm">
-          <a href={`/admin/cobros/${id}/solvencia`} target="_blank" className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 hover:bg-slate-100">
-            Constancia / estado PDF
-          </a>
-          {wa && (
-            <a href={wa} target="_blank" rel="noreferrer" className="rounded-lg bg-green-600 px-3 py-1.5 text-white hover:bg-green-700">
-              WhatsApp
+      <div>
+        <BotonVolver href="/admin/cobros">Cobros</BotonVolver>
+      </div>
+
+      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#15233b] text-lg font-bold text-amber-300">
+              {(a.nombres[0] ?? "").toUpperCase()}{(a.apellidos[0] ?? "").toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-2xl font-bold leading-tight text-slate-800">{a.apellidos}, {a.nombres}</h1>
+              <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                <span className="rounded-full bg-slate-100 px-2.5 py-1 font-medium text-slate-700">Carnet {a.carnet}</span>
+                <span className="rounded-full bg-blue-50 px-2.5 py-1 font-medium text-blue-800">{ins.seccion.grado.nombre} {ins.seccion.nombre}</span>
+                <span className="rounded-full bg-slate-100 px-2.5 py-1 font-medium text-slate-700">Ciclo {ins.ciclo.anio}</span>
+                {ins.motivoDescuento && (
+                  <span className="rounded-full bg-amber-100 px-2.5 py-1 font-medium text-amber-800">Descuento: {ins.motivoDescuento}</span>
+                )}
+              </div>
+              <p className="mt-2 text-sm text-slate-500">Encargado: <span className="text-slate-700">{a.encargadoNombre}</span></p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 text-sm">
+            <a href={`/admin/cobros/${id}/solvencia`} target="_blank" className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 hover:bg-slate-100">
+              Constancia / estado PDF
             </a>
-          )}
+            {wa && (
+              <a href={wa} target="_blank" rel="noreferrer" className="rounded-lg bg-green-600 px-3 py-1.5 text-white hover:bg-green-700">
+                WhatsApp
+              </a>
+            )}
+          </div>
         </div>
       </div>
 
@@ -120,6 +141,24 @@ export default async function EstadoCuentaPage({ params }: { params: Promise<{ i
             ))}
           </tbody>
         </table>
+      </section>
+
+      <section className={tarjeta}>
+        <h2 className="mb-1 font-semibold text-slate-800">Cambiar de sección</h2>
+        <p className="mb-3 text-sm text-slate-500">
+          Ahora está en {ins.seccion.grado.nombre} {ins.seccion.nombre}. Los cobros y las notas se conservan.
+        </p>
+        {hermanas.length === 0 ? (
+          <p className="text-sm text-slate-400">Este grado no tiene otras secciones en el ciclo {ins.ciclo.anio}. Créalas en Académico.</p>
+        ) : (
+          <FormConAviso action={cambiarSeccion.bind(null, id)} etiqueta="Cambiar sección" limpiarSiOk={false}
+            confirmar="¿Cambiar al alumno de sección?">
+            <select name="seccionId" defaultValue="" className={inputCls}>
+              <option value="" disabled>Elige la nueva sección…</option>
+              {hermanas.map((h) => <option key={h.id} value={h.id}>{ins.seccion.grado.nombre} {h.nombre}</option>)}
+            </select>
+          </FormConAviso>
+        )}
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">

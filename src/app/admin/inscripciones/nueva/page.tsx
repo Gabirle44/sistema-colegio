@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import InscripcionForm from "./InscripcionForm";
+import BotonVolver from "@/components/BotonVolver";
 
 export default async function NuevaInscripcionPage() {
   await requireAdmin();
@@ -24,7 +25,7 @@ export default async function NuevaInscripcionPage() {
 
   return (
     <div className="max-w-2xl">
-      <Link href="/admin/cobros" className="text-sm text-blue-700 hover:underline">← Cobros</Link>
+      <BotonVolver href="/admin/cobros">Cobros</BotonVolver>
       <h1 className="mt-1 text-2xl font-bold text-slate-800">Nueva inscripción · Ciclo {ciclo.anio}</h1>
       <p className="mb-4 text-sm text-slate-500">Al inscribir se generan automáticamente la inscripción y todas las mensualidades del ciclo.</p>
       {alumnos.length === 0 || secciones.length === 0 ? (

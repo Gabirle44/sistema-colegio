@@ -7,6 +7,7 @@ import { montoALetras } from "@/lib/cobros/letras";
 import { inputCls, tarjeta, td, th } from "@/lib/ui";
 import FormConAviso from "@/components/FormConAviso";
 import { anularRecibo } from "../actions";
+import BotonVolver from "@/components/BotonVolver";
 
 export default async function ReciboPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin();
@@ -27,7 +28,7 @@ export default async function ReciboPage({ params }: { params: Promise<{ id: str
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <Link href={`/admin/cobros/${r.inscripcionId}`} className="text-sm text-blue-700 hover:underline">← Estado de cuenta</Link>
+        <BotonVolver href={`/admin/cobros/${r.inscripcionId}`}>Estado de cuenta</BotonVolver>
         <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-bold text-slate-800">
             Recibo {numeroRecibo(r)}
