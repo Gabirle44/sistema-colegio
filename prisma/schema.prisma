@@ -138,6 +138,7 @@ model AsignacionCurso {
   curso       Curso       @relation(fields: [cursoId], references: [id])
   seccion     Seccion     @relation(fields: [seccionId], references: [id])
   actividades Actividad[]
+  asistencias Asistencia[]
 
   @@unique([cursoId, seccionId])
   @@map("asignaciones_curso")
@@ -198,6 +199,7 @@ model Inscripcion {
   notas   Nota[]
   boletas BoletaPeriodo[]
   notasActividad NotaActividad[]
+  asistencias    Asistencia[]
 
   @@unique([alumnoId, cicloId])
   @@map("inscripciones")
@@ -391,4 +393,29 @@ model NotaActividad {
 
   @@unique([actividadId, inscripcionId])
   @@map("notas_actividad")
+}
+
+// ───────────── Asistencia de alumnos ─────────────
+enum EstadoAsistencia {
+  PRESENTE
+  AUSENTE
+  TARDE
+  EXCUSA
+}
+
+// Un registro por alumno, curso/sección y día
+model Asistencia {
+  id            Int              @id @default(autoincrement())
+  asignacionId  Int
+  inscripcionId Int
+  fecha         DateTime         @db.Date
+  estado        EstadoAsistencia
+  observacion   String?
+
+  asignacion  AsignacionCurso @relation(fields: [asignacionId], references: [id], onDelete: Cascade)
+  inscripcion Inscripcion     @relation(fields: [inscripcionId], references: [id])
+
+  @@unique([asignacionId, inscripcionId, fecha])
+  @@index([asignacionId, fecha])
+  @@map("asistencias")
 }

@@ -73,6 +73,21 @@ export default async function MaestroPage() {
           </p>
         )}
       </div>
+
+      {asignaciones.length > 0 && (
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="text-sm font-semibold text-slate-900">Asistencia</div>
+          <p className="mt-0.5 text-xs text-slate-500">Toma la asistencia de hoy o imprime la lista del mes.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {asignaciones.map((a) => (
+              <Link key={a.id} href={`/maestro/asistencia/${a.id}`}
+                className="rounded-full border border-slate-300 bg-white px-3.5 py-1.5 text-sm text-slate-700 hover:border-blue-600 hover:text-blue-700">
+                {a.curso.nombre} · {a.seccion.grado.nombre} {a.seccion.nombre}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
