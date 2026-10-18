@@ -6,6 +6,7 @@ import { cargarBoletas, estaRetenida } from "@/lib/notas/boleta";
 import { etiquetaResultado, fmtNota, promedio } from "@/lib/notas/calculo";
 import { quetzales } from "@/lib/cobros/utils";
 import { tarjeta, td, th } from "@/lib/ui";
+import BotonVolver from "@/components/BotonVolver";
 
 const colorRes = { APROBADO: "text-green-700", REPROBADO: "text-red-600", EN_PROCESO: "text-slate-500" } as const;
 
@@ -41,7 +42,7 @@ export default async function SeccionBoletasPage({ params }: { params: Promise<{
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <Link href="/admin/boletas" className="text-sm text-blue-700 hover:underline">← Boletas</Link>
+          <BotonVolver href="/admin/boletas">Boletas</BotonVolver>
           <h1 className="mt-1 text-2xl font-bold text-slate-800">{seccion.grado.nombre} {seccion.nombre} · Cuadro de notas</h1>
           <p className="text-sm text-slate-500">Ciclo {seccion.ciclo.anio} · Nota mínima: {ajustes.notaMinima}</p>
         </div>

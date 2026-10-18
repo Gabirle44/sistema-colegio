@@ -34,6 +34,7 @@ export default async function MaestroPage() {
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">Hola, {primer}</h1>
         <p className="mt-1 text-sm text-slate-500">
           {periodo ? <>Estás capturando notas del <b className="text-slate-700">{periodo.nombre}</b>.</> : "No hay un periodo abierto: puedes consultar tus notas, pero no cambiarlas."}
+          {periodo && " Puedes escribirlas en pantalla o subirlas desde un archivo."}
         </p>
       </div>
 

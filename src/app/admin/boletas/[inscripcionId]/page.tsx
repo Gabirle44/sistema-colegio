@@ -8,6 +8,7 @@ import { CONDUCTAS, etiquetaResultado, fmtNota } from "@/lib/notas/calculo";
 import { guardarBoletaPeriodo } from "@/lib/notas/actions";
 import { enlaceWhatsApp, quetzales } from "@/lib/cobros/utils";
 import { inputCls, tarjeta, td, th } from "@/lib/ui";
+import BotonVolver from "@/components/BotonVolver";
 
 export default async function BoletaDetallePage({ params }: { params: Promise<{ inscripcionId: string }> }) {
   await requireAdmin();
@@ -26,7 +27,7 @@ export default async function BoletaDetallePage({ params }: { params: Promise<{ 
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <Link href={ins ? `/admin/boletas/seccion/${ins.seccionId}` : "/admin/boletas"} className="text-sm text-blue-700 hover:underline">← Cuadro de notas</Link>
+          <BotonVolver href={ins ? `/admin/boletas/seccion/${ins.seccionId}` : "/admin/boletas"}>Cuadro de notas</BotonVolver>
           <h1 className="mt-1 text-2xl font-bold text-slate-800">{b.alumno.nombre}</h1>
           <p className="text-sm text-slate-500">Carnet {b.alumno.carnet} · {b.grado} {b.seccion} · Ciclo {b.ciclo}</p>
         </div>
