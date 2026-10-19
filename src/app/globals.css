@@ -1,26 +1,67 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Identidad visual: azul cobalto sobrio (en lugar del azul por defecto) y esquinas menos infladas */
+@theme {
+  --color-blue-50: #eef2fc;
+  --color-blue-100: #dce5f9;
+  --color-blue-200: #b9c9f2;
+  --color-blue-600: #2a4fc0;
+  --color-blue-700: #2140a0;
+  --color-blue-800: #1a3280;
+  --radius-xl: 0.75rem;
+  --radius-lg: 0.5rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #f6f7f9;
+  color: #1c2433;
+}
+
+/* Cifras alineadas en columnas (montos, notas, fechas) */
+table,
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid #2a4fc0;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Barra de desplazamiento fina y discreta para el menú lateral (fondo oscuro) */
+.scroll-menu {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.2s;
+}
+.scroll-menu:hover {
+  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+}
+.scroll-menu::-webkit-scrollbar {
+  width: 6px;
+}
+.scroll-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-menu::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 999px;
+}
+.scroll-menu:hover::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+}
+.scroll-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
 }

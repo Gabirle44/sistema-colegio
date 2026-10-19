@@ -17,12 +17,14 @@ enum Concepto {
   INSCRIPCION
   MENSUALIDAD
   OTRO
+  RECARGO
 }
 
 enum EstadoCargo {
   PENDIENTE
   PARCIAL
   PAGADO
+  ANULADO
 }
 
 enum MetodoPago {
@@ -30,6 +32,11 @@ enum MetodoPago {
   TRANSFERENCIA
   DEPOSITO
   CHEQUE
+}
+
+enum EstadoRecibo {
+  VIGENTE
+  ANULADO
 }
 
 // ───────────── Usuarios y maestros ─────────────
@@ -42,10 +49,11 @@ model Usuario {
   activo       Boolean  @default(true)
   creadoEn     DateTime @default(now())
 
-  maestro  Maestro?
-  pagos    Pago[]
-  recibos  Recibo[]
-  pagosMaestros PagoMaestro[]
+  maestro         Maestro?
+  recibosEmitidos Recibo[]      @relation("ReciboEmitidoPor")
+  recibosAnulados Recibo[]      @relation("ReciboAnuladoPor")
+  pagosMaestros   PagoMaestro[]
+  bitacora        Bitacora[]
 
   @@map("usuarios")
 }
@@ -126,9 +134,11 @@ model AsignacionCurso {
   cursoId   Int
   seccionId Int
 
-  maestro Maestro @relation(fields: [maestroId], references: [id])
-  curso   Curso   @relation(fields: [cursoId], references: [id])
-  seccion Seccion @relation(fields: [seccionId], references: [id])
+  maestro     Maestro     @relation(fields: [maestroId], references: [id])
+  curso       Curso       @relation(fields: [cursoId], references: [id])
+  seccion     Seccion     @relation(fields: [seccionId], references: [id])
+  actividades Actividad[]
+  asistencias Asistencia[]
 
   @@unique([cursoId, seccionId])
   @@map("asignaciones_curso")
@@ -141,8 +151,10 @@ model Periodo {
   nombre  String
   abierto Boolean @default(true)
 
-  ciclo CicloEscolar @relation(fields: [cicloId], references: [id])
-  notas Nota[]
+  ciclo       CicloEscolar @relation(fields: [cicloId], references: [id])
+  notas       Nota[]
+  boletas     BoletaPeriodo[]
+  actividades Actividad[]
 
   @@unique([cicloId, numero])
   @@map("periodos")
@@ -152,11 +164,14 @@ model Periodo {
 model Alumno {
   id                 Int       @id @default(autoincrement())
   carnet             String    @unique
+  cui                String?   @unique
   nombres            String
   apellidos          String
   fechaNacimiento    DateTime?
+  telefono           String?
   encargadoNombre    String
   encargadoTelefono  String?
+  encargadoCorreo    String?
   activo             Boolean   @default(true)
 
   inscripciones Inscripcion[]
@@ -165,67 +180,131 @@ model Alumno {
 }
 
 model Inscripcion {
-  id                Int      @id @default(autoincrement())
-  alumnoId          Int
-  seccionId         Int
-  cicloId           Int
-  fecha             DateTime @default(now())
-  montoInscripcion  Decimal  @db.Decimal(10, 2)
-  montoMensualidad  Decimal  @db.Decimal(10, 2)
+  id                   Int      @id @default(autoincrement())
+  alumnoId             Int
+  seccionId            Int
+  cicloId              Int
+  fecha                DateTime @default(now())
+  montoInscripcion     Decimal  @db.Decimal(10, 2)
+  montoMensualidad     Decimal  @db.Decimal(10, 2)
+  descuentoInscripcion Decimal  @default(0) @db.Decimal(10, 2)
+  descuentoMensualidad Decimal  @default(0) @db.Decimal(10, 2)
+  motivoDescuento      String?
 
   alumno  Alumno       @relation(fields: [alumnoId], references: [id])
   seccion Seccion      @relation(fields: [seccionId], references: [id])
   ciclo   CicloEscolar @relation(fields: [cicloId], references: [id])
   cargos  Cargo[]
+  recibos Recibo[]
   notas   Nota[]
+  boletas BoletaPeriodo[]
+  notasActividad NotaActividad[]
+  asistencias    Asistencia[]
 
   @@unique([alumnoId, cicloId])
   @@map("inscripciones")
 }
 
 // ───────────── Cobros ─────────────
+// Un cargo es algo que el alumno debe: inscripción, una mensualidad, un cobro extra o un recargo por mora.
 model Cargo {
   id               Int         @id @default(autoincrement())
   inscripcionId    Int
   concepto         Concepto
+  descripcion      String
   mes              Int?
   monto            Decimal     @db.Decimal(10, 2)
+  descuento        Decimal     @default(0) @db.Decimal(10, 2)
+  pagado           Decimal     @default(0) @db.Decimal(10, 2)
   fechaVencimiento DateTime
   estado           EstadoCargo @default(PENDIENTE)
+  recargoDeId      Int?        @unique
+  creadoEn         DateTime    @default(now())
 
-  inscripcion Inscripcion @relation(fields: [inscripcionId], references: [id])
-  pagos       Pago[]
+  inscripcion Inscripcion     @relation(fields: [inscripcionId], references: [id])
+  recargoDe   Cargo?          @relation("RecargoMora", fields: [recargoDeId], references: [id])
+  recargo     Cargo?          @relation("RecargoMora")
+  detalles    ReciboDetalle[]
 
   @@index([inscripcionId, estado])
+  @@index([fechaVencimiento])
   @@map("cargos")
 }
 
-model Pago {
-  id         Int        @id @default(autoincrement())
-  cargoId    Int
-  monto      Decimal    @db.Decimal(10, 2)
-  fecha      DateTime   @default(now())
-  metodo     MetodoPago
-  registradoPorId Int
+// Un recibo puede cubrir varios cargos (por ejemplo, varios meses pagados a la vez).
+model Recibo {
+  id              Int          @id @default(autoincrement())
+  serie           String       @default("A")
+  numero          Int          @unique @default(autoincrement())
+  inscripcionId   Int
+  fecha           DateTime     @default(now())
+  total           Decimal      @db.Decimal(10, 2)
+  metodo          MetodoPago
+  referencia      String?
+  observaciones   String?
+  estado          EstadoRecibo @default(VIGENTE)
+  motivoAnulacion String?
+  anuladoEn       DateTime?
+  anuladoPorId    Int?
+  emitidoPorId    Int
 
-  cargo         Cargo   @relation(fields: [cargoId], references: [id])
-  registradoPor Usuario @relation(fields: [registradoPorId], references: [id])
-  recibo        Recibo?
+  inscripcion Inscripcion     @relation(fields: [inscripcionId], references: [id])
+  emitidoPor  Usuario         @relation("ReciboEmitidoPor", fields: [emitidoPorId], references: [id])
+  anuladoPor  Usuario?        @relation("ReciboAnuladoPor", fields: [anuladoPorId], references: [id])
+  detalles    ReciboDetalle[]
 
-  @@map("pagos")
+  @@index([fecha])
+  @@index([inscripcionId])
+  @@map("recibos")
 }
 
-model Recibo {
-  id        Int      @id @default(autoincrement())
-  numero    Int      @unique @default(autoincrement())
-  pagoId    Int      @unique
-  fecha     DateTime @default(now())
-  emitidoPorId Int
+model ReciboDetalle {
+  id       Int     @id @default(autoincrement())
+  reciboId Int
+  cargoId  Int
+  monto    Decimal @db.Decimal(10, 2)
 
-  pago      Pago    @relation(fields: [pagoId], references: [id])
-  emitidoPor Usuario @relation(fields: [emitidoPorId], references: [id])
+  recibo Recibo @relation(fields: [reciboId], references: [id], onDelete: Cascade)
+  cargo  Cargo  @relation(fields: [cargoId], references: [id])
 
-  @@map("recibos")
+  @@index([reciboId])
+  @@index([cargoId])
+  @@map("recibo_detalles")
+}
+
+// Datos del colegio y reglas de cobro (una sola fila, id = 1)
+model Configuracion {
+  id                    Int     @id @default(1)
+  nombreColegio         String  @default("Colegio Nuevo Horizonte")
+  direccion             String  @default("")
+  telefono              String  @default("")
+  serieRecibo           String  @default("A")
+  cantidadMensualidades Int     @default(10)
+  mesInicio             Int     @default(1)
+  diaVencimiento        Int     @default(5)
+  diasGracia            Int     @default(0)
+  recargoMora           Decimal @default(0) @db.Decimal(10, 2)
+  notaMinima            Int     @default(60)
+  zonaMax               Int     @default(70) // el examen vale 100 - zonaMax
+  bloquearBoletaMora    Boolean @default(false)
+
+  @@map("configuracion")
+}
+
+// Registro de quién hizo qué
+model Bitacora {
+  id         Int      @id @default(autoincrement())
+  usuarioId  Int
+  accion     String
+  entidad    String
+  entidadId  Int?
+  detalle    String?
+  creadoEn   DateTime @default(now())
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@index([creadoEn])
+  @@map("bitacora")
 }
 
 model PagoMaestro {
@@ -251,15 +330,92 @@ model Nota {
   inscripcionId   Int
   cursoId         Int
   periodoId       Int
-  valor           Decimal  @db.Decimal(5, 2)
-  registradaPorId Int
+  zona            Decimal? @db.Decimal(5, 2)
+  examen          Decimal? @db.Decimal(5, 2)
+  valor           Decimal  @db.Decimal(5, 2) // total = zona + examen
+  observacion     String?
+  registradaPorId Int?
   actualizadaEn   DateTime @updatedAt
 
   inscripcion   Inscripcion @relation(fields: [inscripcionId], references: [id])
   curso         Curso       @relation(fields: [cursoId], references: [id])
   periodo       Periodo     @relation(fields: [periodoId], references: [id])
-  registradaPor Maestro     @relation(fields: [registradaPorId], references: [id])
+  registradaPor Maestro?    @relation(fields: [registradaPorId], references: [id])
 
   @@unique([inscripcionId, cursoId, periodoId])
   @@map("notas")
+}
+
+// Datos de la boleta por periodo: asistencia, conducta y comentario general
+model BoletaPeriodo {
+  id            Int     @id @default(autoincrement())
+  inscripcionId Int
+  periodoId     Int
+  inasistencias Int     @default(0)
+  conducta      String?
+  comentario    String?
+
+  inscripcion Inscripcion @relation(fields: [inscripcionId], references: [id])
+  periodo     Periodo     @relation(fields: [periodoId], references: [id])
+
+  @@unique([inscripcionId, periodoId])
+  @@map("boletas_periodo")
+}
+
+
+// ───────────── Actividades de la zona ─────────────
+// El maestro desglosa la zona de un curso/sección/periodo en actividades con sus puntos (tarea, prueba corta...).
+model Actividad {
+  id           Int     @id @default(autoincrement())
+  asignacionId Int
+  periodoId    Int
+  nombre       String
+  puntos       Decimal @db.Decimal(5, 2)
+  orden        Int     @default(0)
+
+  asignacion AsignacionCurso @relation(fields: [asignacionId], references: [id], onDelete: Cascade)
+  periodo    Periodo         @relation(fields: [periodoId], references: [id], onDelete: Cascade)
+  notas      NotaActividad[]
+
+  @@index([asignacionId, periodoId])
+  @@map("actividades")
+}
+
+// Puntos que sacó un alumno en una actividad. La zona de la Nota es la suma de estos puntos.
+model NotaActividad {
+  id            Int     @id @default(autoincrement())
+  actividadId   Int
+  inscripcionId Int
+  puntos        Decimal @db.Decimal(5, 2)
+
+  actividad   Actividad   @relation(fields: [actividadId], references: [id], onDelete: Cascade)
+  inscripcion Inscripcion @relation(fields: [inscripcionId], references: [id])
+
+  @@unique([actividadId, inscripcionId])
+  @@map("notas_actividad")
+}
+
+// ───────────── Asistencia de alumnos ─────────────
+enum EstadoAsistencia {
+  PRESENTE
+  AUSENTE
+  TARDE
+  EXCUSA
+}
+
+// Un registro por alumno, curso/sección y día
+model Asistencia {
+  id            Int              @id @default(autoincrement())
+  asignacionId  Int
+  inscripcionId Int
+  fecha         DateTime         @db.Date
+  estado        EstadoAsistencia
+  observacion   String?
+
+  asignacion  AsignacionCurso @relation(fields: [asignacionId], references: [id], onDelete: Cascade)
+  inscripcion Inscripcion     @relation(fields: [inscripcionId], references: [id])
+
+  @@unique([asignacionId, inscripcionId, fecha])
+  @@index([asignacionId, fecha])
+  @@map("asistencias")
 }
