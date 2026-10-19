@@ -419,3 +419,16 @@ model Asistencia {
   @@index([asignacionId, fecha])
   @@map("asistencias")
 }
+
+// ───────────── Seguridad del login ─────────────
+// Cuenta los intentos fallidos por correo y por dirección IP para frenar los ataques de fuerza bruta.
+model IntentoLogin {
+  id             Int       @id @default(autoincrement())
+  clave          String    @unique // "correo:alguien@colegio.test" o "ip:200.x.x.x"
+  intentos       Int       @default(0)
+  bloqueadoHasta DateTime?
+  ultimoIntento  DateTime  @updatedAt
+
+  @@index([ultimoIntento])
+  @@map("intentos_login")
+}
