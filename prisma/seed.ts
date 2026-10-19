@@ -14,7 +14,7 @@ async function main() {
       passwordHash: await bcrypt.hash("Admin123!", 10),
       rol: "ADMIN",
     },
-  });
+  }); 
 
   // Maestro de prueba (con su registro en la tabla maestros)
   const usuarioMaestro = await prisma.usuario.upsert({
