@@ -1,0 +1,96 @@
+======================================================================
+Paso 1 - Cambio en el datasource de Prisma
+======================================================================
+$ git diff --ignore-cr-at-eol -- prisma/schema.prisma
+
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+index e540e77..a936fa0 100644
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -3,8 +3,9 @@ generator client {
+ }
+ 
+ datasource db {
+-  provider = "postgresql"
+-  url      = env("DATABASE_URL")
++  provider  = "postgresql"
++  url       = env("DATABASE_URL")
++  directUrl = env("DIRECT_URL")
+ }
+ 
+ // ───────────── Enums ─────────────
+
+
+======================================================================
+Paso 2 - Historial de desarrollo
+======================================================================
+$ git log --graph --oneline --decorate -18
+
+* cbb18ff (HEAD -> main, origin/main, origin/HEAD, feature/despliegue) Agrego archivo de equipo Isela
+*   834e37f Merge pull request #3 from Gabirle44/feature/limite-login
+|\  
+| * 44c095e (origin/feature/limite-login, feature/limite-login) Limite de intentos de login por correo e IP
+|/  
+*   62055ee Merge pull request #2 from Gabirle44/feature/notas-boletas
+|\  
+| * 24b1207 (origin/feature/notas-boletas, feature/notas-boletas) Asistencia: mejora el diseno de la pantalla y de la lista en PDF
+| * dbbc32b Asistencia de alumnos: registro por curso, resumen y lista en PDF para imprimir
+| * 9e48d34 Rediseno: menu lateral, panel de inicio, login y boton de regreso
+| * 4dfd372 Gestion de maestros y pagos a maestros con comprobante PDF
+| * e16618b Notas y boletas: captura por maestro, actividades de zona, subida CSV y boletas PDF
+| * 5c47bf8 Modulo de cobros: inscripciones, pagos, recibos PDF, morosos, caja, reportes y bitacora
+| * a3aa7bf Base de datos: cobros, notas, actividades y maestros (esquema, migraciones y seed)
+| * 9766665 Cobros, notas, académico, promoción y rediseño
+| * a873e5c feat: estructura academica, promocion, rediseno de panel, menu, login y panel del maestro
+| * a82980d feat: estructura academica, promocion, rediseno del panel y menu
+| * 2214d54 feat: cobros, notas y boletas
+| * ae2fc1b feat: modulo de cobros
+| * 7b37558 (feature/cobros) feat: modulo de cobros
+|/  
+* b15bbf0 Proyecto base: login con roles, esquema Prisma y Docker
+
+
+======================================================================
+Paso 3 - Ramas del repositorio
+======================================================================
+$ git branch -a
+
+  docs/equipo-isela
+  feature/cobros
+  feature/crud-alumnos
+  feature/despliegue
+  feature/limite-login
+  feature/notas-boletas
+* main
+  remotes/origin/HEAD -> origin/main
+  remotes/origin/docs/equipo-isela
+  remotes/origin/feature/crud-alumnos
+  remotes/origin/feature/isela
+  remotes/origin/feature/limite-login
+  remotes/origin/feature/notas-boletas
+  remotes/origin/main
+
+
+======================================================================
+Paso 4 - Commits por integrante
+======================================================================
+$ git shortlog -sn --all
+
+    18	EleazarJ
+     4	ISELA BELLA LUZ DE LEON GUZMAN
+     2	Gabirle44
+
+
+======================================================================
+Paso 5 - Migraciones de la base de datos
+======================================================================
+$ ls -1 prisma/migrations | grep -v migration_lock
+
+20261017191632_init
+20261017195512_alumno_datos_adicionales
+20261017203642_modulo_cobros
+20261017204810_modulo_notas
+20261018002650_actividades
+20261018011429_asistencia
+20261019020247_limite_login
+
