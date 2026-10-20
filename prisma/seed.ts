@@ -3,27 +3,43 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
+// Las credenciales iniciales NUNCA se escriben en el código: se leen del entorno.
+// En desarrollo van en .env; en producción se definen antes de correr el seed.
+function requerido(nombre: string, minimo = 8): string {
+  const valor = process.env[nombre];
+  if (!valor || valor.length < minimo) {
+    throw new Error(
+      `Falta la variable ${nombre} o es muy corta (mínimo ${minimo} caracteres).\n` +
+        `Defínela en .env para desarrollo, o en el entorno antes de correr el seed en producción.`,
+    );
+  }
+  return valor;
+}
+
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "admin@colegio.test";
+const MAESTRO_EMAIL = process.env.MAESTRO_EMAIL ?? "maestro@colegio.test";
+
 async function main() {
   // Administrador de prueba
   await prisma.usuario.upsert({
-    where: { email: "admin@colegio.test" },
+    where: { email: ADMIN_EMAIL },
     update: {},
     create: {
       nombre: "Administrador",
-      email: "admin@colegio.test",
-      passwordHash: await bcrypt.hash("Admin123!", 10),
+      email: ADMIN_EMAIL,
+      passwordHash: await bcrypt.hash(requerido("ADMIN_PASSWORD"), 10),
       rol: "ADMIN",
     },
   });
 
   // Maestro de prueba (con su registro en la tabla maestros)
   const usuarioMaestro = await prisma.usuario.upsert({
-    where: { email: "maestro@colegio.test" },
+    where: { email: MAESTRO_EMAIL },
     update: {},
     create: {
       nombre: "Maestro Demo",
-      email: "maestro@colegio.test",
-      passwordHash: await bcrypt.hash("Maestro123!", 10),
+      email: MAESTRO_EMAIL,
+      passwordHash: await bcrypt.hash(requerido("MAESTRO_PASSWORD"), 10),
       rol: "MAESTRO",
     },
   });
