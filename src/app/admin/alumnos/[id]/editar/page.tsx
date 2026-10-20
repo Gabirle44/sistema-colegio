@@ -26,11 +26,14 @@ export default async function EditarAlumnoPage({
         etiquetaBoton="Guardar cambios"
         valores={{
           carnet: alumno.carnet,
+          cui: alumno.cui ?? "",
           nombres: alumno.nombres,
           apellidos: alumno.apellidos,
           fechaNacimiento: alumno.fechaNacimiento?.toISOString().slice(0, 10),
+          telefono: alumno.telefono ?? "",
           encargadoNombre: alumno.encargadoNombre,
           encargadoTelefono: alumno.encargadoTelefono ?? "",
+          encargadoCorreo: alumno.encargadoCorreo ?? "",
         }}
       />
     </div>

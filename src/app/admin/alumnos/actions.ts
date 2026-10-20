@@ -9,8 +9,12 @@ import { validarAlumno, type ErroresAlumno } from "@/lib/validaciones/alumno";
 
 export type AlumnoFormState = { errors?: ErroresAlumno; message?: string } | undefined;
 
-function esCarnetDuplicado(e: unknown) {
-  return e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002";
+// Convierte el error de unicidad de Prisma (P2002) en un mensaje para el campo correcto
+function errorDuplicado(e: unknown): ErroresAlumno | null {
+  if (!(e instanceof Prisma.PrismaClientKnownRequestError) || e.code !== "P2002") return null;
+  const target = String((e.meta as { target?: unknown } | undefined)?.target ?? "");
+  if (target.includes("cui")) return { cui: "Ese CUI ya está registrado" };
+  return { carnet: "Ese carnet ya está registrado" };
 }
 
 export async function crearAlumno(
@@ -24,7 +28,8 @@ export async function crearAlumno(
   try {
     await prisma.alumno.create({ data: resultado.datos });
   } catch (e) {
-    if (esCarnetDuplicado(e)) return { errors: { carnet: "Ese carnet ya está registrado" } };
+    const duplicado = errorDuplicado(e);
+    if (duplicado) return { errors: duplicado };
     throw e;
   }
 
@@ -44,7 +49,8 @@ export async function actualizarAlumno(
   try {
     await prisma.alumno.update({ where: { id }, data: resultado.datos });
   } catch (e) {
-    if (esCarnetDuplicado(e)) return { errors: { carnet: "Ese carnet ya está registrado" } };
+    const duplicado = errorDuplicado(e);
+    if (duplicado) return { errors: duplicado };
     throw e;
   }
 
