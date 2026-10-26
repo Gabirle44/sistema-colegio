@@ -5,7 +5,7 @@ import { mesGT } from "@/lib/cobros/utils";
 import { requireActor } from "@/lib/notas/acceso";
 import { pdfListaAsistencia } from "./pdf";
 
-// Respuesta PDF compartida por la ruta del maestro y la del administrador
+// Respuesta HTML/Impresión compartida por la ruta del maestro y la del administrador
 export async function respuestaListaAsistencia(asignacionId: number, mesParam: string | null) {
   const actor = await requireActor();
   if (!Number.isInteger(asignacionId)) notFound();
@@ -32,10 +32,10 @@ export async function respuestaListaAsistencia(asignacionId: number, mesParam: s
     maestro: `${asig.maestro.nombres} ${asig.maestro.apellidos}`, ciclo: asig.seccion.ciclo.anio, anio, mes,
     alumnos: inscripciones.map((i) => ({ nombre: `${i.alumno.apellidos}, ${i.alumno.nombres}`, carnet: i.alumno.carnet })),
   });
+
   return new Response(Buffer.from(bytes), {
     headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="asistencia-${asig.curso.nombre.replace(/\W+/g, "_")}-${anio}-${String(mes).padStart(2, "0")}.pdf"`,
+      "Content-Type": "text/html; charset=utf-8",
     },
   });
 }

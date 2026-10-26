@@ -26,17 +26,30 @@ export async function crearCiclo(_prev: AccionState, fd: FormData): Promise<Acci
     await prisma.$transaction(async (tx) => {
       const existe = await tx.cicloEscolar.findUnique({ where: { anio } });
       if (existe) throw new ErrorNegocio(`El ciclo ${anio} ya existe.`);
+
       const nuevo = await tx.cicloEscolar.create({ data: { anio, activo: false } });
       let detalle = `Ciclo ${anio} creado`;
 
       const base = await tx.cicloEscolar.findFirst({ where: { activo: true } });
+
       if (copiar && base) {
         const periodos = await tx.periodo.findMany({ where: { cicloId: base.id }, orderBy: { numero: "asc" } });
         if (periodos.length > 0) {
           await tx.periodo.createMany({
             data: periodos.map((p) => ({ cicloId: nuevo.id, numero: p.numero, nombre: p.nombre, abierto: true })),
           });
+        } else {
+          // Si el ciclo activo no tiene periodos definidos, se generan los 4 bloques por defecto
+          await tx.periodo.createMany({
+            data: [
+              { cicloId: nuevo.id, numero: 1, nombre: "Bloque 1", abierto: true },
+              { cicloId: nuevo.id, numero: 2, nombre: "Bloque 2", abierto: true },
+              { cicloId: nuevo.id, numero: 3, nombre: "Bloque 3", abierto: true },
+              { cicloId: nuevo.id, numero: 4, nombre: "Bloque 4", abierto: true },
+            ],
+          });
         }
+
         const secciones = await tx.seccion.findMany({ where: { cicloId: base.id } });
         const mapa = new Map<number, number>();
         for (const s of secciones) {
@@ -51,8 +64,20 @@ export async function crearCiclo(_prev: AccionState, fd: FormData): Promise<Acci
             });
           }
         }
-        detalle += ` (copiadas ${secciones.length} secciones y ${periodos.length} periodos${copiarMaestros ? ", con maestros" : ""})`;
+        detalle += ` (copiadas ${secciones.length} secciones y periodos${copiarMaestros ? ", con maestros" : ""})`;
+      } else {
+        // Creación limpia: se asignan los 4 bloques del año lectivo por defecto
+        await tx.periodo.createMany({
+          data: [
+            { cicloId: nuevo.id, numero: 1, nombre: "Bloque 1", abierto: true },
+            { cicloId: nuevo.id, numero: 2, nombre: "Bloque 2", abierto: true },
+            { cicloId: nuevo.id, numero: 3, nombre: "Bloque 3", abierto: true },
+            { cicloId: nuevo.id, numero: 4, nombre: "Bloque 4", abierto: true },
+          ],
+        });
+        detalle += " con 4 bloques generados por defecto";
       }
+
       await registrarBitacora(tx, { usuarioId: sesion.userId, accion: "CICLO", entidad: "CicloEscolar", entidadId: nuevo.id, detalle });
     });
   } catch (e) {
