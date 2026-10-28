@@ -47,6 +47,15 @@ export default async function MaestroPage() {
           </svg>
           <span>Mi perfil</span>
         </Link>
+        <Link
+          href="/maestro/horario"
+          className="inline-flex items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-xs hover:border-slate-300 hover:bg-slate-50 transition"
+        >
+          <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Ver mi horario</span>
+        </Link>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

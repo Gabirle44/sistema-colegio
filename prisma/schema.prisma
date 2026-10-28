@@ -135,11 +135,12 @@ model AsignacionCurso {
   cursoId   Int
   seccionId Int
 
-  maestro     Maestro     @relation(fields: [maestroId], references: [id])
-  curso       Curso       @relation(fields: [cursoId], references: [id])
-  seccion     Seccion     @relation(fields: [seccionId], references: [id])
-  actividades Actividad[]
-  asistencias Asistencia[]
+  maestro        Maestro         @relation(fields: [maestroId], references: [id])
+  curso          Curso           @relation(fields: [cursoId], references: [id])
+  seccion        Seccion         @relation(fields: [seccionId], references: [id])
+  actividades    Actividad[]
+  asistencias    Asistencia[]
+  bloquesHorario BloqueHorario[]
 
   @@unique([cursoId, seccionId])
   @@map("asignaciones_curso")
@@ -438,3 +439,20 @@ model IntentoLogin {
   @@index([ultimoIntento])
   @@map("intentos_login")
 }
+
+// ───────────── Horarios de clases ─────────────
+// Cada bloque horario pertenece a una asignación de curso (que une curso, sección y maestro)
+model BloqueHorario {
+  id           Int      @id @default(autoincrement())
+  asignacionId Int
+  diaSemana    Int      // 1 = Lunes, 2 = Martes, 3 = Miércoles, 4 = Jueves, 5 = Viernes, 6 = Sábado
+  horaInicio   String   // Formato "HH:mm", ej. "07:30"
+  horaFin      String   // Formato "HH:mm", ej. "08:15"
+
+  asignacion AsignacionCurso @relation(fields: [asignacionId], references: [id], onDelete: Cascade)
+
+  @@index([asignacionId])
+  @@index([diaSemana])
+  @@map("bloques_horario")
+}
+
