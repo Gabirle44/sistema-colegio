@@ -68,7 +68,7 @@ export default async function MaestroPage() {
             <Link key={a.id} href={`/maestro/notas/${a.id}`} className="group rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-blue-600">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="text-lg font-semibold text-slate-900">{a.curso.nombre}</div>
+                  <div className="text-lg font-semibold text-slate-900">{a.curso.nombre} </div>
                   <div className="text-sm text-slate-500">{a.seccion.grado.nombre} {a.seccion.nombre} · {total} {total === 1 ? "alumno" : "alumnos"}</div>
                 </div>
                 {periodo && (
@@ -102,6 +102,22 @@ export default async function MaestroPage() {
             {asignaciones.map((a) => (
               <Link key={a.id} href={`/maestro/asistencia/${a.id}`}
                 className="rounded-full border border-slate-300 bg-white px-3.5 py-1.5 text-sm text-slate-700 hover:border-blue-600 hover:text-blue-700">
+                {a.curso.nombre} · {a.seccion.grado.nombre} {a.seccion.nombre}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* BLOQUE NUEVO DE TAREAS */}
+      {asignaciones.length > 0 && (
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="text-sm font-semibold text-slate-900">Tareas y Entregas</div>
+          <p className="mt-0.5 text-xs text-slate-500">Publica nuevas tareas o califica las entregas de tus alumnos.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {asignaciones.map((a) => (
+              <Link key={a.id} href={`/maestro/tareas/${a.id}`}
+                className="rounded-full border border-slate-300 bg-white px-3.5 py-1.5 text-sm text-slate-700 hover:border-emerald-600 hover:text-emerald-700">
                 {a.curso.nombre} · {a.seccion.grado.nombre} {a.seccion.nombre}
               </Link>
             ))}

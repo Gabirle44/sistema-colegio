@@ -141,6 +141,7 @@ model AsignacionCurso {
   actividades    Actividad[]
   asistencias    Asistencia[]
   bloquesHorario BloqueHorario[]
+  tareas       Tarea[]
 
   @@unique([cursoId, seccionId])
   @@map("asignaciones_curso")
@@ -202,6 +203,7 @@ model Inscripcion {
   boletas BoletaPeriodo[]
   notasActividad NotaActividad[]
   asistencias    Asistencia[]
+  entregasTarea   EntregaTarea[]
 
   @@unique([alumnoId, cicloId])
   @@map("inscripciones")
@@ -456,3 +458,37 @@ model BloqueHorario {
   @@map("bloques_horario")
 }
 
+// ───────────── Tareas de los alumnos ─────────────
+model Tarea {
+  id           Int      @id @default(autoincrement())
+  asignacionId Int
+  titulo       String
+  descripcion  String?
+  fechaEntrega DateTime
+  puntos       Decimal  @db.Decimal(5, 2)
+  creadoEn     DateTime @default(now())
+
+  asignacion   AsignacionCurso @relation(fields: [asignacionId], references: [id], onDelete: Cascade)
+  entregas     EntregaTarea[]
+
+  @@index([asignacionId])
+  @@map("tareas")
+}
+
+model EntregaTarea {
+  id            Int       @id @default(autoincrement())
+  tareaId       Int
+  inscripcionId Int
+  entregado     Boolean   @default(false)
+  fecha         DateTime? // Fecha en la que el alumno entregó
+  nota          Decimal?  @db.Decimal(5, 2)
+
+  tarea         Tarea       @relation(fields: [tareaId], references: [id], onDelete: Cascade)
+  inscripcion   Inscripcion @relation(fields: [inscripcionId], references: [id], onDelete: Cascade)
+
+  // Un alumno solo puede tener un registro de entrega por tarea
+  @@unique([tareaId, inscripcionId])
+  @@index([tareaId])
+  @@index([inscripcionId])
+  @@map("entregas_tareas")
+}

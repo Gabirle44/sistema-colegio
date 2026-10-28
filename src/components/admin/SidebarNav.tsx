@@ -38,6 +38,7 @@ const GRUPOS: readonly { titulo: string | null; items: readonly Item[] }[] = [
     items: [
       ["Notas", "/admin/notas", "M9 3h6v4H9zM7 5H5v16h14V5h-2M9 12h6M9 16h4"],
       ["Asistencia", "/admin/asistencia", "M4 5h16v15H4zM4 10h16M8 3v4M16 3v4M9 15l2 2 4-4"],
+      ["Tareas", "/admin/tareas", "M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"],
       ["Boletas", "/admin/boletas", "M12 14a5 5 0 1 0 0-10 5 5 0 0 0 0 10ZM8.5 13.5 7 21l5-3 5 3-1.5-7.5"],
     ],
   },
