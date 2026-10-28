@@ -313,7 +313,12 @@ model PagoMaestro {
   maestroId       Int
   mes             Int
   anio            Int
-  monto           Decimal  @db.Decimal(10, 2)
+  sueldoBase      Decimal  @default(0) @db.Decimal(10, 2)
+  bonificacion    Decimal  @default(250.00) @db.Decimal(10, 2)
+  horasExtra      Decimal  @default(0) @db.Decimal(10, 2)
+  igss            Decimal  @default(0) @db.Decimal(10, 2)
+  descuentos      Decimal  @default(0) @db.Decimal(10, 2)
+  monto           Decimal  @db.Decimal(10, 2) // Líquido a recibir
   fecha           DateTime @default(now())
   observaciones   String?
   registradoPorId Int
