@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Figtree } from "next/font/google";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -26,7 +27,16 @@ export default async function MaestroLayout({ children }: { children: React.Reac
             <span className="hidden text-sm font-semibold text-white sm:block">{colegio}{ciclo ? ` · ${ciclo.anio}` : ""}</span>
           </a>
           <div className="flex items-center gap-3 text-sm">
-            <span className="text-slate-200">{usuario?.nombre}</span>
+            <Link
+              href="/maestro/perfil"
+              className="rounded-md border border-white/20 px-2.5 py-1 text-xs font-medium text-slate-100 hover:bg-white/10 hover:text-white transition flex items-center gap-1.5"
+            >
+              <svg className="h-3.5 w-3.5 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span>Mi perfil</span>
+            </Link>
+            <span className="text-slate-200 hidden sm:inline">{usuario?.nombre}</span>
             <form action={logout}>
               <button className="rounded-md border border-white/20 px-3 py-1 text-slate-100 hover:bg-white/10">Salir</button>
             </form>

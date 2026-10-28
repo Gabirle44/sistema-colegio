@@ -1,7 +1,20 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { Suspense, useActionState, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { login } from "./actions";
+
+function AvisoExitoLogin() {
+  const searchParams = useSearchParams();
+  if (searchParams.get("cambioPassword") === "1") {
+    return (
+      <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        ✓ Tu contraseña se actualizó correctamente. Por seguridad tu sesión anterior se cerró; por favor ingresa con tu nueva contraseña.
+      </div>
+    );
+  }
+  return null;
+}
 
 const campo =
   "w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-200";
@@ -44,6 +57,10 @@ export default function LoginPage() {
             <h2 className="text-2xl font-bold tracking-tight text-slate-900">Iniciar sesión</h2>
             <p className="mt-1 text-sm text-slate-500">Usa el correo y la contraseña que te dio la administración.</p>
           </div>
+
+          <Suspense fallback={null}>
+            <AvisoExitoLogin />
+          </Suspense>
 
           <div className="space-y-1.5">
             <label htmlFor="email" className="text-sm font-medium text-slate-700">Correo</label>
