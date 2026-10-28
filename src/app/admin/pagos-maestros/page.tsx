@@ -4,7 +4,8 @@ import { requireAdmin } from "@/lib/auth";
 import FormConAviso from "@/components/FormConAviso";
 import { aCentavos, deCentavos, fechaGT, hoyGT, mayuscula, MESES, nombreMes, quetzales } from "@/lib/cobros/utils";
 import { inputCls, tarjeta } from "@/lib/ui";
-import { eliminarPagoMaestro, registrarPagoMaestro } from "./actions";
+import FormRegistroPagoMaestro from "./FormRegistroPagoMaestro";
+import { eliminarPagoMaestro } from "./actions";
 
 type SP = Promise<{ mes?: string; anio?: string }>;
 
@@ -74,31 +75,38 @@ export default async function PagosMaestrosPage({ searchParams }: { searchParams
                   <div className="text-xs text-slate-500">Salario {quetzales(aCentavos(m.salarioMensual))}</div>
                 </div>
                 {p ? (
-                  <div className="flex flex-wrap items-center gap-3 text-sm">
-                    <span className="rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
-                      Pagado {quetzales(aCentavos(p.monto))} · {fechaGT(p.fecha)}
-                    </span>
-                    <a href={`/admin/pagos-maestros/${p.id}/pdf`} target="_blank" className="text-blue-700 hover:underline">Comprobante</a>
-                    <form action={eliminarPagoMaestro.bind(null, p.id)}>
-                      <button className="text-xs text-red-600 hover:underline">Eliminar</button>
-                    </form>
+                  <div className="flex flex-col sm:items-end gap-1.5 text-sm">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700">
+                        Líquido pagado {quetzales(aCentavos(p.monto))} · {fechaGT(p.fecha)}
+                      </span>
+                      <a href={`/admin/pagos-maestros/${p.id}/pdf`} target="_blank" className="text-blue-700 hover:underline text-xs font-medium">
+                        Ver Comprobante
+                      </a>
+                      <form action={eliminarPagoMaestro.bind(null, p.id)}>
+                        <button className="text-xs text-red-600 hover:underline">Eliminar</button>
+                      </form>
+                    </div>
+                    {aCentavos(p.sueldoBase) > 0 && (
+                      <div className="text-[11px] text-slate-500">
+                        Base: {quetzales(aCentavos(p.sueldoBase))} | Bono: {quetzales(aCentavos(p.bonificacion))} | IGSS: -{quetzales(aCentavos(p.igss))}
+                        {aCentavos(p.horasExtra) > 0 && ` | Extra: +${quetzales(aCentavos(p.horasExtra))}`}
+                        {aCentavos(p.descuentos) > 0 && ` | Desc: -${quetzales(aCentavos(p.descuentos))}`}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">Pendiente</span>
                 )}
               </div>
               {!p && (
-                <FormConAviso
-                  action={registrarPagoMaestro.bind(null, m.id, mes, anio)}
-                  etiqueta="Registrar pago" etiquetaCargando="Guardando..." limpiarSiOk={false}
-                  confirmar={`¿Registrar el pago de ${m.nombres} ${m.apellidos}?`}
-                  className="mt-3 border-t border-slate-100 pt-3"
-                >
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    <input name="monto" defaultValue={deCentavos(aCentavos(m.salarioMensual))} inputMode="decimal" className={inputCls} aria-label="Monto" />
-                    <input name="observaciones" placeholder="Observaciones (opcional)" className={`${inputCls} sm:col-span-2`} />
-                  </div>
-                </FormConAviso>
+                <FormRegistroPagoMaestro
+                  maestroId={m.id}
+                  maestroNombre={`${m.nombres} ${m.apellidos}`}
+                  salarioBaseCentavos={aCentavos(m.salarioMensual)}
+                  mes={mes}
+                  anio={anio}
+                />
               )}
             </div>
           );
