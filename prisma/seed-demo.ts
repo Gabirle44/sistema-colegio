@@ -6,6 +6,17 @@ import { aCentavos, deCentavos, hoyGT } from "../src/lib/cobros/utils";
 
 const prisma = new PrismaClient();
 
+const urlDb = (process.env.DATABASE_URL ?? "") + " " + (process.env.DIRECT_URL ?? "");
+const esProduccion = process.env.NODE_ENV === "production" || /neon\.tech|production/i.test(urlDb);
+
+if (esProduccion) {
+  console.error(
+    "SEED DEMO DETENIDO: este script no puede ejecutarse en producción ni contra una base de Neon. " +
+      "Usa prisma/seed.ts para datos mínimos del sistema o cambia NODE_ENV/DATABASE_URL antes de correr esta demo.",
+  );
+  process.exit(1);
+}
+
 type Demo = {
   carnet: string; cui: string; nombres: string; apellidos: string; nac: string; tel: string;
   enc: string; telEnc: string; correo: string;

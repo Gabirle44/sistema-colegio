@@ -29,6 +29,7 @@ const GRUPOS: readonly { titulo: string | null; items: readonly Item[] }[] = [
     titulo: "Personal",
     items: [
       ["Maestros", "/admin/maestros", "M3 5h18v11H3zM8 20h8M12 16v4M7 9h6M7 12h4"],
+      ["Administradores", "/admin/usuarios", "M12 2a4 4 0 0 1 4 4v1a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4ZM4 20a8 8 0 0 1 16 0"],
       ["Pagos a maestros", "/admin/pagos-maestros", "M12 3v18M16 7.5c0-1.4-1.8-2.5-4-2.5s-4 1.1-4 2.5 1.8 2.5 4 2.5 4 1.1 4 2.5-1.8 2.5-4 2.5-4-1.1-4-2.5"],
     ],
   },
