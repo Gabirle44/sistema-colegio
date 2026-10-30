@@ -10,7 +10,7 @@ export type AlumnoDatos = {
   encargadoCorreo: string | null;
 };
 
-export type ErroresAlumno = Partial<Record<keyof AlumnoDatos, string>>;
+export type ErroresAlumno = Partial<Record<keyof AlumnoDatos | "foto", string>>;
 
 const texto = (fd: FormData, campo: string) => String(fd.get(campo) ?? "").trim();
 const TELEFONO = /^[0-9+\-\s]{8,15}$/;

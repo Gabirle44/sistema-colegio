@@ -178,8 +178,21 @@ model Alumno {
   activo             Boolean   @default(true)
 
   inscripciones Inscripcion[]
+  foto          AlumnoFoto?
 
   @@map("alumnos")
+}
+
+// Foto aparte para que las listas no carguen los bytes de la imagen (SC-38)
+model AlumnoFoto {
+  alumnoId      Int      @id
+  tipo          String
+  datos         Bytes
+  actualizadaEn DateTime @updatedAt
+
+  alumno Alumno @relation(fields: [alumnoId], references: [id], onDelete: Cascade)
+
+  @@map("alumno_fotos")
 }
 
 model Inscripcion {

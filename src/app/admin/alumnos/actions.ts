@@ -6,6 +6,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { validarAlumno, type ErroresAlumno } from "@/lib/validaciones/alumno";
+import { leerFoto } from "@/lib/validaciones/foto";
 
 export type AlumnoFormState = { errors?: ErroresAlumno; message?: string } | undefined;
 
@@ -23,10 +24,17 @@ export async function crearAlumno(
 ): Promise<AlumnoFormState> {
   await requireAdmin();
   const resultado = validarAlumno(formData);
-  if (!resultado.datos) return { errors: resultado.errors };
+  const foto = await leerFoto(formData.get("foto"));
+  if (!resultado.datos) return { errors: { ...resultado.errors, ...(foto.error ? { foto: foto.error } : {}) } };
+  if (foto.error) return { errors: { foto: foto.error } };
 
   try {
-    await prisma.alumno.create({ data: resultado.datos });
+    await prisma.alumno.create({
+      data: {
+        ...resultado.datos,
+        ...(foto.datos ? { foto: { create: { tipo: foto.datos.tipo, datos: foto.datos.bytes } } } : {}),
+      },
+    });
   } catch (e) {
     const duplicado = errorDuplicado(e);
     if (duplicado) return { errors: duplicado };
@@ -44,10 +52,27 @@ export async function actualizarAlumno(
 ): Promise<AlumnoFormState> {
   await requireAdmin();
   const resultado = validarAlumno(formData);
-  if (!resultado.datos) return { errors: resultado.errors };
+  const foto = await leerFoto(formData.get("foto"));
+  if (!resultado.datos) return { errors: { ...resultado.errors, ...(foto.error ? { foto: foto.error } : {}) } };
+  if (foto.error) return { errors: { foto: foto.error } };
+
+  // Foto nueva la reemplaza; "quitar" la borra; si no se toca, se conserva
+  const cambioFoto = foto.datos
+    ? {
+        foto: {
+          upsert: {
+            create: { tipo: foto.datos.tipo, datos: foto.datos.bytes },
+            update: { tipo: foto.datos.tipo, datos: foto.datos.bytes },
+          },
+        },
+      }
+    : {};
 
   try {
-    await prisma.alumno.update({ where: { id }, data: resultado.datos });
+    await prisma.alumno.update({ where: { id }, data: { ...resultado.datos, ...cambioFoto } });
+    if (!foto.datos && formData.get("quitarFoto")) {
+      await prisma.alumnoFoto.deleteMany({ where: { alumnoId: id } });
+    }
   } catch (e) {
     const duplicado = errorDuplicado(e);
     if (duplicado) return { errors: duplicado };

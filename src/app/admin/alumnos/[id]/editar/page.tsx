@@ -17,6 +17,7 @@ export default async function EditarAlumnoPage({
 
   const alumno = await prisma.alumno.findUnique({ where: { id: alumnoId } });
   if (!alumno) notFound();
+  const foto = await prisma.alumnoFoto.findUnique({ where: { alumnoId }, select: { alumnoId: true } });
 
   return (
     <div className="space-y-5">
@@ -24,6 +25,8 @@ export default async function EditarAlumnoPage({
       <AlumnoForm
         action={actualizarAlumno.bind(null, alumno.id)}
         etiquetaBoton="Guardar cambios"
+        alumnoId={alumno.id}
+        tieneFoto={foto !== null}
         valores={{
           carnet: alumno.carnet,
           cui: alumno.cui ?? "",

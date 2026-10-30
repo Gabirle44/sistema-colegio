@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireActor } from "@/lib/notas/acceso";
-import { enlaceWhatsApp, fechaCorta, quetzales } from "@/lib/cobros/utils";
+import { enlaceWhatsApp } from "@/lib/cobros/utils";
 import BotonVolver from "@/components/BotonVolver";
-import { fmtNota, promedio, resultadoCurso } from "@/lib/notas/calculo";
+import FotoAlumno from "@/components/FotoAlumno";
+import { fmtNota, promedio } from "@/lib/notas/calculo";
 
 export default async function AlumnoDetallePage({ params }: { params: Promise<{ inscripcionId: string }> }) {
   const actor = await requireActor();
@@ -27,6 +27,8 @@ export default async function AlumnoDetallePage({ params }: { params: Promise<{ 
     if (!pertenece) redirect("/maestro");
   }
 
+  const tieneFoto = (await prisma.alumnoFoto.findUnique({ where: { alumnoId: inscripcion.alumnoId }, select: { alumnoId: true } })) !== null;
+
   const periodos = await prisma.periodo.findMany({
     where: { cicloId: inscripcion.seccion.cicloId },
     orderBy: { numero: "asc" },
@@ -45,9 +47,12 @@ export default async function AlumnoDetallePage({ params }: { params: Promise<{ 
 
       <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800">{inscripcion.alumno.nombres} {inscripcion.alumno.apellidos}</h1>
-            <p className="mt-1 text-sm text-slate-500">Carné {inscripcion.alumno.carnet} · {inscripcion.seccion.grado.nombre} {inscripcion.seccion.nombre}</p>
+          <div className="flex items-center gap-4">
+            <FotoAlumno alumnoId={inscripcion.alumnoId} tieneFoto={tieneFoto} nombre={`${inscripcion.alumno.nombres} ${inscripcion.alumno.apellidos}`} tamano={72} />
+            <div>
+              <h1 className="text-2xl font-bold text-slate-800">{inscripcion.alumno.nombres} {inscripcion.alumno.apellidos}</h1>
+              <p className="mt-1 text-sm text-slate-500">Carné {inscripcion.alumno.carnet} · {inscripcion.seccion.grado.nombre} {inscripcion.seccion.nombre}</p>
+            </div>
           </div>
           {wa && (
             <a href={wa} target="_blank" rel="noreferrer" className="rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700">
