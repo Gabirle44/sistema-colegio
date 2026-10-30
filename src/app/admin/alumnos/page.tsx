@@ -118,7 +118,37 @@ export default async function AlumnosPage({ searchParams }: { searchParams: Sear
         </button>
       </form>
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+      <ul className="space-y-3 md:hidden">
+        {alumnos.map((a) => (
+          <li key={a.id} className="rounded-xl border border-slate-200 bg-white p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="font-medium text-slate-800">{a.apellidos}, {a.nombres}</div>
+                <div className="text-xs text-slate-500">Carnet {a.carnet}</div>
+              </div>
+              <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${a.activo ? "bg-green-100 text-green-800" : "bg-slate-200 text-slate-600"}`}>
+                {a.activo ? "Activo" : "Inactivo"}
+              </span>
+            </div>
+            <div className="mt-3 space-y-1 text-sm text-slate-600">
+              <div><span className="font-medium text-slate-700">Grado:</span> {a.inscripciones[0] ? `${a.inscripciones[0].seccion.grado.nombre} ${a.inscripciones[0].seccion.nombre}` : "Sin inscribir"}</div>
+              <div><span className="font-medium text-slate-700">Encargado:</span> {a.encargadoNombre}</div>
+              <div><span className="font-medium text-slate-700">Contacto:</span> {[a.encargadoTelefono, a.encargadoCorreo].filter(Boolean).join(" · ") || "Sin contacto"}</div>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link href={`/admin/alumnos/${a.id}/editar`} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs hover:bg-slate-100">Editar</Link>
+              <form action={cambiarEstadoAlumno.bind(null, a.id, !a.activo)} className="inline-block">
+                <button className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs hover:bg-slate-100">{a.activo ? "Desactivar" : "Activar"}</button>
+              </form>
+            </div>
+          </li>
+        ))}
+        {alumnos.length === 0 && (
+          <li className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">No se encontraron alumnos.</li>
+        )}
+      </ul>
+
+      <div className="hidden overflow-x-auto rounded-xl border border-slate-200 bg-white md:block">
         <table className="w-full text-left text-sm">
           <thead className="bg-slate-100 text-slate-600">
             <tr>

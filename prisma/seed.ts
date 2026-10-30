@@ -3,8 +3,6 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
-// Las credenciales iniciales NUNCA se escriben en el código: se leen del entorno.
-// En desarrollo van en .env; en producción se definen antes de correr el seed.
 function requerido(nombre: string, minimo = 8): string {
   const valor = process.env[nombre];
   if (!valor || valor.length < minimo) {

@@ -38,7 +38,39 @@ export default async function MorososPage({ searchParams }: { searchParams: SP }
         {morosos.length} alumno(s) · Deuda vencida total: <b className="text-red-600">{quetzales(totalDeuda(morosos))}</b>
         {config.diasGracia > 0 && <> · (con {config.diasGracia} días de gracia)</>}
       </p>
-      <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+      <ul className="mt-3 space-y-3 md:hidden">
+        {morosos.map((m) => {
+          const wa = enlaceWhatsApp(
+            m.telefono,
+            `Estimado(a) ${m.encargado}, del ${config.nombreColegio}: le recordamos que ${m.alumno} tiene ${m.cuotasVencidas} cuota(s) vencida(s) por ${quetzales(m.deudaVencida)}. Agradecemos su pronto pago.`,
+          );
+          return (
+            <li key={m.inscripcionId} className="rounded-xl border border-slate-200 bg-white p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-medium text-slate-800">{m.alumno}</div>
+                  <div className="text-xs text-slate-500">{m.carnet} · {m.grado} {m.seccion}</div>
+                </div>
+                <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-600">{m.cuotasVencidas} cuotas</span>
+              </div>
+              <div className="mt-3 flex justify-between text-sm text-slate-600">
+                <span>Desde</span>
+                <b className="text-slate-800">{fechaCorta(m.masAntiguo)}</b>
+              </div>
+              <div className="mt-1 flex justify-between text-sm text-slate-600">
+                <span>Deuda</span>
+                <b className="text-red-600">{quetzales(m.deudaVencida)}</b>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {wa && <a href={wa} target="_blank" rel="noreferrer" className="rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700">WhatsApp</a>}
+                <Link href={`/admin/cobros/${m.inscripcionId}`} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs hover:bg-slate-100">Cobrar</Link>
+              </div>
+            </li>
+          );
+        })}
+        {morosos.length === 0 && <li className="py-8 text-center text-sm text-green-700">No hay morosos. 🎉</li>}
+      </ul>
+      <div className="mt-3 hidden overflow-x-auto rounded-xl border border-slate-200 bg-white md:block">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-500">
             <tr><th className={th}>Alumno</th><th className={th}>Grado</th><th className={th}>Cuotas</th><th className={th}>Deuda vencida</th>

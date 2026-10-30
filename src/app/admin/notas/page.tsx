@@ -61,38 +61,70 @@ export default async function NotasAdminPage() {
         </div>
       </section>
 
-      <section className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+      <section className="rounded-xl border border-slate-200 bg-white">
         <h2 className="px-4 pt-4 font-semibold text-slate-800">Cursos y avance de notas</h2>
-        <table className="mt-2 w-full text-sm">
-          <thead className="bg-slate-50 text-slate-500">
-            <tr><th className={th}>Grado</th><th className={th}>Curso</th><th className={th}>Maestro</th>
-              {periodos.map((p) => <th key={p.id} className={th}>{p.nombre}</th>)}<th className={th} /></tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {asignaciones.map((a) => {
-              const total = alumnosPorSeccion.get(a.seccionId) ?? 0;
-              return (
-                <tr key={a.id}>
-                  <td className={td}>{a.seccion.grado.nombre} {a.seccion.nombre}</td>
-                  <td className={td}>{a.curso.nombre}</td>
-                  <td className={td}>{a.maestro.nombres} {a.maestro.apellidos}</td>
+        <ul className="space-y-3 p-4 md:hidden">
+          {asignaciones.map((a) => {
+            const total = alumnosPorSeccion.get(a.seccionId) ?? 0;
+            return (
+              <li key={a.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="font-medium text-slate-800">{a.curso.nombre}</div>
+                    <div className="text-xs text-slate-500">{a.seccion.grado.nombre} {a.seccion.nombre}</div>
+                  </div>
+                  <Link href={`/admin/notas/${a.id}`} className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs hover:bg-slate-100">Ver</Link>
+                </div>
+                <div className="mt-3 text-sm text-slate-600">Maestro: {a.maestro.nombres} {a.maestro.apellidos}</div>
+                <div className="mt-2 space-y-2">
                   {periodos.map((p) => {
                     const c = conteo.get(`${a.seccionId}|${a.cursoId}|${p.id}`) ?? 0;
+                    const ok = total > 0 && c >= total;
                     return (
-                      <td key={p.id} className={`${td} ${total > 0 && c >= total ? "text-green-700" : c === 0 ? "text-slate-400" : "text-amber-700"}`}>
-                        {c}/{total}
-                      </td>
+                      <div key={p.id} className="flex items-center justify-between gap-3 text-sm">
+                        <span className="text-slate-500">{p.nombre}</span>
+                        <span className={ok ? "text-green-700" : c === 0 ? "text-slate-400" : "text-amber-700"}>{c}/{total}</span>
+                      </div>
                     );
                   })}
-                  <td className={td}><Link href={`/admin/notas/${a.id}`} className="text-blue-700 hover:underline">Ver / editar</Link></td>
-                </tr>
-              );
-            })}
-            {asignaciones.length === 0 && (
-              <tr><td colSpan={4 + periodos.length} className="px-4 py-8 text-center text-slate-400">No hay cursos asignados a maestros en este ciclo.</td></tr>
-            )}
-          </tbody>
-        </table>
+                </div>
+              </li>
+            );
+          })}
+          {asignaciones.length === 0 && <li className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-400">No hay cursos asignados a maestros en este ciclo.</li>}
+        </ul>
+        <div className="hidden overflow-x-auto md:block">
+          <table className="mt-2 w-full text-sm">
+            <thead className="bg-slate-50 text-slate-500">
+              <tr><th className={th}>Grado</th><th className={th}>Curso</th><th className={th}>Maestro</th>
+                {periodos.map((p) => <th key={p.id} className={th}>{p.nombre}</th>)}<th className={th} /></tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {asignaciones.map((a) => {
+                const total = alumnosPorSeccion.get(a.seccionId) ?? 0;
+                return (
+                  <tr key={a.id}>
+                    <td className={td}>{a.seccion.grado.nombre} {a.seccion.nombre}</td>
+                    <td className={td}>{a.curso.nombre}</td>
+                    <td className={td}>{a.maestro.nombres} {a.maestro.apellidos}</td>
+                    {periodos.map((p) => {
+                      const c = conteo.get(`${a.seccionId}|${a.cursoId}|${p.id}`) ?? 0;
+                      return (
+                        <td key={p.id} className={`${td} ${total > 0 && c >= total ? "text-green-700" : c === 0 ? "text-slate-400" : "text-amber-700"}`}>
+                          {c}/{total}
+                        </td>
+                      );
+                    })}
+                    <td className={td}><Link href={`/admin/notas/${a.id}`} className="text-blue-700 hover:underline">Ver / editar</Link></td>
+                  </tr>
+                );
+              })}
+              {asignaciones.length === 0 && (
+                <tr><td colSpan={4 + periodos.length} className="px-4 py-8 text-center text-slate-400">No hay cursos asignados a maestros en este ciclo.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </section>
     </div>
   );
