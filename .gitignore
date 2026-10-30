@@ -44,3 +44,6 @@ next-env.d.ts
 
 # El ejemplo si se sube: es la plantilla para el equipo
 !.env.example
+
+# respaldos locales de la base de datos
+/backups/

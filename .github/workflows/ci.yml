@@ -50,6 +50,9 @@ jobs:
       - name: Revisar tipos
         run: npx tsc --noEmit
 
+      - name: Pruebas automáticas
+        run: npm test
+
       - name: Revisar estilo
         run: npx eslint .
 
