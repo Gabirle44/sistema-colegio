@@ -242,7 +242,7 @@ export default function RejillaHorario({ bloques, modo }: Props) {
                               <span>{bloque.maestro.nombres} {bloque.maestro.apellidos}</span>
                             ) : (
                               <span className="font-medium text-slate-700">
-                                {bloque.seccion.grado.nombre} "{bloque.seccion.nombre}"
+                                {bloque.seccion.grado.nombre} &quot;{bloque.seccion.nombre}&quot;
                               </span>
                             )}
                           </div>

@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
-import FormConAviso from "@/components/FormConAviso";
-import { aCentavos, deCentavos, fechaGT, hoyGT, mayuscula, MESES, nombreMes, quetzales } from "@/lib/cobros/utils";
-import { inputCls, tarjeta } from "@/lib/ui";
+import { aCentavos, fechaGT, hoyGT, mayuscula, MESES, nombreMes, quetzales } from "@/lib/cobros/utils";
+import { tarjeta } from "@/lib/ui";
 import FormRegistroPagoMaestro from "./FormRegistroPagoMaestro";
 import { eliminarPagoMaestro } from "./actions";
 

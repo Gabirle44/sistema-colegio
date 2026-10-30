@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useActionState, useRef } from "react";
+import { startTransition, useActionState, useEffect, useRef } from "react";
 import type { AccionState } from "@/lib/cobros/tipos";
 
 type Props = {
@@ -55,9 +55,13 @@ export default function FormConAviso({
 
 function ResetOnOk({ estado, form }: { estado: AccionState; form: React.RefObject<HTMLFormElement | null> }) {
   const ultimo = useRef<AccionState>(undefined);
-  if (estado?.ok && estado !== ultimo.current) {
-    ultimo.current = estado;
-    queueMicrotask(() => form.current?.reset());
-  }
+  // En un efecto, no durante el render: React prohibe leer o escribir refs
+  // mientras renderiza, porque el resultado deja de ser predecible.
+  useEffect(() => {
+    if (estado?.ok && estado !== ultimo.current) {
+      ultimo.current = estado;
+      form.current?.reset();
+    }
+  }, [estado, form]);
   return null;
 }

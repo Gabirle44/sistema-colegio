@@ -112,7 +112,7 @@ export default async function MaestroPerfilPage() {
                 >
                   <span className="font-semibold text-slate-900">{a.curso.nombre}</span>
                   <span className="rounded bg-white px-2 py-0.5 font-medium text-slate-600 border border-slate-200/70">
-                    {a.seccion.grado.nombre} "{a.seccion.nombre}"
+                    {a.seccion.grado.nombre} &quot;{a.seccion.nombre}&quot;
                   </span>
                 </div>
               ))}

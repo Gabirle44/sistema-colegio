@@ -1,0 +1,57 @@
+# Integracion Continua: revisa cada Pull Request antes de que se mezcle a main.
+#
+# Por que existe: el despliegue a produccion se rompio dos veces por un error
+# de TypeScript que llevaba dias en main. Con esto, ese error sale en rojo
+# dentro del Pull Request, antes del merge.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Si alguien sube otro commit al mismo PR, cancela la corrida anterior.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  revisar:
+    name: Tipos, estilo y compilacion
+    runs-on: ubuntu-latest
+
+    env:
+      # Valores de mentira: el CI no se conecta a ninguna base real.
+      # Prisma solo necesita que la variable exista para leer el esquema.
+      DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+      DIRECT_URL: "postgresql://ci:ci@localhost:5432/ci"
+      SESSION_SECRET: "valor-de-prueba-solo-para-el-ci-no-sirve-en-produccion"
+
+    steps:
+      - name: Bajar el codigo
+        uses: actions/checkout@v4
+
+      - name: Preparar Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # npm ci instala exactamente lo que dice package-lock.json.
+      # Dispara el postinstall, que genera el cliente de Prisma.
+      - name: Instalar dependencias
+        run: npm ci
+
+      # Se repite a proposito: si alguien quita el postinstall, el CI sigue sirviendo.
+      - name: Generar el cliente de Prisma
+        run: npx prisma generate
+
+      - name: Revisar tipos
+        run: npx tsc --noEmit
+
+      - name: Revisar estilo
+        run: npx eslint .
+
+      - name: Compilar
+        run: npx next build

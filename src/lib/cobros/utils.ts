@@ -39,6 +39,10 @@ export function hoyGT(): Date {
 }
 export const isoHoyGT = () => hoyGT().toISOString().slice(0, 10);
 
+// Hora actual (0-23) en Guatemala. Vive aqui, junto al resto del manejo de
+// zona horaria, para no leer el reloj dentro del render de un componente.
+export const horaGT = (): number => new Date(Date.now() - GT_MS).getUTCHours();
+
 // Inicio (00:00 hora de Guatemala) de una fecha "AAAA-MM-DD"
 export const inicioDiaGT = (iso: string) => new Date(`${iso}T06:00:00.000Z`);
 

@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/auth";
 import { obtenerConfig } from "@/lib/cobros/config";
 import { saldoCentavos, netoCentavos } from "@/lib/cobros/cargos";
 import { obtenerMorosos, totalDeuda } from "@/lib/cobros/morosos";
-import { aCentavos, diaMs, fechaHoraGT, hoyGT, mesGT, MESES, quetzales } from "@/lib/cobros/utils";
+import { aCentavos, diaMs, fechaHoraGT, horaGT, hoyGT, mesGT, MESES, quetzales } from "@/lib/cobros/utils";
 import { tarjeta } from "@/lib/ui";
 
 const GT_MS = 6 * 3_600_000;
@@ -167,7 +167,7 @@ export default async function AdminPage() {
   const fecha = new Date(hoy);
   const fechaTexto = `${DIAS[fecha.getUTCDay()]} ${fecha.getUTCDate()} de ${MESES[fecha.getUTCMonth()]}`;
   const saludo = (() => {
-    const h = new Date(Date.now() - GT_MS).getUTCHours();
+    const h = horaGT();
     return h < 12 ? "Buenos días" : h < 19 ? "Buenas tardes" : "Buenas noches";
   })();
   const primerNombre = usuario?.nombre.split(/\s+/)[0] ?? "";

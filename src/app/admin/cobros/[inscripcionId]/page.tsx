@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { obtenerConfig } from "@/lib/cobros/config";
 import { resumenCuenta, saldoCentavos } from "@/lib/cobros/cargos";
-import { aCentavos, enlaceWhatsApp, esVencido, fechaCorta, fechaGT, numeroRecibo, quetzales } from "@/lib/cobros/utils";
+import { aCentavos, enlaceWhatsApp, esVencido, fechaCorta, fechaGT, isoHoyGT, numeroRecibo, quetzales } from "@/lib/cobros/utils";
 import { inputCls, tarjeta, td, th } from "@/lib/ui";
 import FormConAviso from "@/components/FormConAviso";
 import PagoForm from "./PagoForm";
@@ -54,7 +54,7 @@ export default async function EstadoCuentaPage({ params }: { params: Promise<{ i
     ? `Estimado(a) ${a.encargadoNombre}, del ${cfg.nombreColegio}: le recordamos que ${a.nombres} ${a.apellidos} tiene ${r.cuotasVencidas} cuota(s) vencida(s) por ${quetzales(r.vencido)}. Agradecemos su pronto pago.`
     : `Estimado(a) ${a.encargadoNombre}, del ${cfg.nombreColegio}: ${a.nombres} ${a.apellidos} se encuentra solvente. ¡Gracias!`;
   const wa = enlaceWhatsApp(a.encargadoTelefono ?? a.telefono, mensaje);
-  const hoyIso = new Date(Date.now() - 6 * 3_600_000).toISOString().slice(0, 10);
+  const hoyIso = isoHoyGT();
 
   return (
     <div className="space-y-6">

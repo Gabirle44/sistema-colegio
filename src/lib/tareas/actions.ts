@@ -23,7 +23,7 @@ export async function crearTarea(
     if (!fechaEntrega) throw new ErrorNegocio("La fecha de entrega es obligatoria.");
     if (isNaN(puntos) || puntos < 0) throw new ErrorNegocio("Los puntos deben ser un número positivo.");
 
-    const id = await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
       const asig = await tx.asignacionCurso.findUnique({
         where: { id: asignacionId },
         include: { curso: true, seccion: { include: { grado: true } } },
