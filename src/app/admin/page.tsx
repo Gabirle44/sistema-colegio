@@ -17,9 +17,10 @@ const inicioMes = (y: number, m: number, desp = 0) => new Date(Date.UTC(y, m + d
 
 function Kpi({ titulo, valor, detalle, tono = "normal", href }: { titulo: string; valor: string; detalle: string; tono?: "normal" | "alerta"; href?: string }) {
   const cuerpo = (
-    <div className={`${tarjeta} h-full ${tono === "alerta" ? "border-red-200" : ""} ${href ? "transition-colors hover:border-blue-600" : ""}`}>
-      <div className="text-sm text-slate-500">{titulo}</div>
-      <div className={`mt-1 text-3xl font-bold tracking-tight ${tono === "alerta" ? "text-red-600" : "text-slate-900"}`}>{valor}</div>
+    <div className={`${tarjeta} relative h-full overflow-hidden ${tono === "alerta" ? "border-red-200" : ""} ${href ? "transition hover:-translate-y-0.5 hover:border-blue-600" : ""}`}>
+      <span aria-hidden="true" className={`absolute inset-x-0 top-0 h-1 ${tono === "alerta" ? "bg-red-500" : "bg-gradient-to-r from-blue-700 to-blue-600"}`} />
+      <div className="text-sm font-medium text-slate-500">{titulo}</div>
+      <div className={`mt-2 text-[1.75rem] font-bold leading-none tracking-tight tabular-nums sm:text-3xl ${tono === "alerta" ? "text-red-600" : "text-slate-900"}`}>{valor}</div>
       <div className="mt-1 text-sm text-slate-500">{detalle}</div>
     </div>
   );

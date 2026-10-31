@@ -20,7 +20,7 @@ export default async function MaestroLayout({ children }: { children: React.Reac
 
   return (
     <div className={`${figtree.className} min-h-screen bg-slate-50 text-slate-800`}>
-      <header className="bg-[#15233b]">
+      <header className="bg-gradient-to-r from-[#0f1b33] to-[#17294a] shadow-[0_4px_20px_-10px_rgba(15,27,51,0.7)]">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-4 sm:gap-6">
             <a href="/maestro" className="flex items-center gap-3">

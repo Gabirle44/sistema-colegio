@@ -22,7 +22,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   const marca = (
     <div className="flex items-center gap-3">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-300 text-sm font-extrabold text-[#15233b]">{iniciales}</div>
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-300 text-sm font-extrabold text-[#15233b] shadow-[0_2px_8px_-2px_rgba(245,184,46,0.55)]">{iniciales}</div>
       <div className="min-w-0">
         <div className="text-sm font-semibold leading-snug text-white">{nombreColegio}</div>
         <div className="mt-0.5 inline-block rounded-full bg-white/10 px-2 py-0.5 text-[11px] text-slate-200">
@@ -50,7 +50,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className={`${figtree.className} min-h-screen`}>
       {/* Escritorio: barra lateral fija */}
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col bg-[#15233b] px-3 py-5 lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col bg-gradient-to-b from-[#0f1b33] to-[#17294a] px-3 py-5 shadow-[4px_0_24px_-12px_rgba(15,27,51,0.6)] lg:flex">
         <div className="px-3 pb-6">{marca}</div>
         <div className="scroll-menu -mr-2 flex-1 overflow-y-auto pr-2">
           <SidebarNav avisos={avisos} />

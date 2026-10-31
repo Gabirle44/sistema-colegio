@@ -65,3 +65,121 @@ table,
 .scroll-menu::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.4);
 }
+
+/* ───────── Pulido visual (v2): superficies, tablas, botones y formularios ───────── */
+@theme {
+  --color-slate-50: #f6f8fb;
+  --color-slate-100: #eef1f6;
+  --color-slate-200: #e1e6ee;
+  --color-slate-300: #cbd3df;
+}
+
+body {
+  background:
+    radial-gradient(1100px 380px at 85% -120px, rgba(42, 79, 192, 0.07), transparent 70%),
+    #f2f4f8;
+}
+
+::selection {
+  background: #f6d673;
+  color: #15233b;
+}
+
+h1 {
+  letter-spacing: -0.025em;
+}
+
+/* Tarjetas y contenedores de tablas: borde fino y sombra en dos capas */
+[class*="rounded-xl"][class*="border-slate-200"][class*="bg-white"] {
+  border-color: #e1e6ee;
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.04),
+    0 8px 20px -10px rgba(16, 24, 40, 0.12);
+}
+
+/* Tablas: encabezado limpio y fila resaltada al pasar el cursor */
+thead,
+thead tr {
+  background: #f6f8fb;
+}
+thead th {
+  color: #55637a;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+  border-bottom: 1px solid #e1e6ee;
+}
+tbody tr {
+  transition: background-color 0.12s;
+}
+tbody tr:hover {
+  background: #f7f9fd;
+}
+
+/* Transiciones suaves en controles */
+button,
+a,
+input,
+select,
+textarea {
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    box-shadow 0.15s,
+    color 0.15s;
+}
+
+/* Botón principal con relieve sutil */
+button.bg-blue-700,
+a.bg-blue-700,
+input[type="submit"].bg-blue-700 {
+  background-image: linear-gradient(180deg, #3159cc 0%, #2342a6 100%);
+  box-shadow:
+    0 1px 2px rgba(33, 64, 160, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+button.bg-blue-700:hover,
+a.bg-blue-700:hover {
+  background-image: linear-gradient(180deg, #2a4fc0 0%, #1b3687 100%);
+}
+button.bg-blue-700:active,
+a.bg-blue-700:active {
+  transform: translateY(0.5px);
+}
+button.bg-blue-700:disabled {
+  box-shadow: none;
+}
+
+/* Botones secundarios */
+button.border-slate-300:hover:not(:disabled),
+a.border-slate-300:hover {
+  border-color: #aab5c6;
+}
+
+/* Campos de formulario */
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+select,
+textarea {
+  border-color: #cbd3df;
+}
+input:not([type="checkbox"]):not([type="radio"]):focus,
+select:focus,
+textarea:focus {
+  border-color: #2a4fc0;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(42, 79, 192, 0.16);
+}
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: #2a4fc0;
+}
+
+/* Impresión: sin fondos ni sombras */
+@media print {
+  body {
+    background: #fff !important;
+  }
+  * {
+    box-shadow: none !important;
+  }
+}
