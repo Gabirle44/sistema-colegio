@@ -183,3 +183,29 @@ input[type="radio"] {
     box-shadow: none !important;
   }
 }
+
+/* Entrada escalonada (se usa una sola vez, en la portada del login) */
+@keyframes subir {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.entrada {
+  animation: subir 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes flotar {
+  0%, 100% {
+    transform: rotate(-3deg) translateY(0);
+  }
+  50% {
+    transform: rotate(-3deg) translateY(-8px);
+  }
+}
+.flotar {
+  animation: flotar 7s ease-in-out infinite;
+}

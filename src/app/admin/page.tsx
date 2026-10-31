@@ -15,13 +15,26 @@ const corto = (m: number) => MESES[m].slice(0, 3);
 // Inicio del mes (00:00 hora de Guatemala) desplazado `desp` meses
 const inicioMes = (y: number, m: number, desp = 0) => new Date(Date.UTC(y, m + desp, 1, 6));
 
-function Kpi({ titulo, valor, detalle, tono = "normal", href }: { titulo: string; valor: string; detalle: string; tono?: "normal" | "alerta"; href?: string }) {
+const TONOS_KPI = {
+  verde: { barra: "from-emerald-600 to-emerald-400", chip: "bg-emerald-50 text-emerald-700" },
+  azul: { barra: "from-blue-700 to-sky-400", chip: "bg-blue-50 text-blue-700" },
+  rojo: { barra: "from-red-600 to-orange-400", chip: "bg-red-50 text-red-600" },
+  violeta: { barra: "from-violet-600 to-fuchsia-400", chip: "bg-violet-50 text-violet-700" },
+} as const;
+
+function Kpi({ titulo, valor, detalle, tono = "normal", href, color = "azul", icono }: { titulo: string; valor: string; detalle: string; tono?: "normal" | "alerta"; href?: string; color?: keyof typeof TONOS_KPI; icono: string }) {
+  const t = TONOS_KPI[tono === "alerta" ? "rojo" : color];
   const cuerpo = (
     <div className={`${tarjeta} relative h-full overflow-hidden ${tono === "alerta" ? "border-red-200" : ""} ${href ? "transition hover:-translate-y-0.5 hover:border-blue-600" : ""}`}>
-      <span aria-hidden="true" className={`absolute inset-x-0 top-0 h-1 ${tono === "alerta" ? "bg-red-500" : "bg-gradient-to-r from-blue-700 to-blue-600"}`} />
-      <div className="text-sm font-medium text-slate-500">{titulo}</div>
+      <span aria-hidden="true" className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${t.barra}`} />
+      <div className="flex items-start justify-between gap-3">
+        <div className="text-sm font-medium text-slate-500">{titulo}</div>
+        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${t.chip}`}>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={icono} /></svg>
+        </span>
+      </div>
       <div className={`mt-2 text-[1.75rem] font-bold leading-none tracking-tight tabular-nums sm:text-3xl ${tono === "alerta" ? "text-red-600" : "text-slate-900"}`}>{valor}</div>
-      <div className="mt-1 text-sm text-slate-500">{detalle}</div>
+      <div className="mt-2 text-sm text-slate-500">{detalle}</div>
     </div>
   );
   return href ? <Link href={href}>{cuerpo}</Link> : cuerpo;
@@ -35,7 +48,7 @@ function Barras({ datos, resaltar }: { datos: { etiqueta: string; valor: number 
         <li key={d.etiqueta} className="flex h-full flex-1 flex-col justify-end text-center" title={`${d.etiqueta}: ${quetzales(d.valor)}`}>
           <span className="mb-1 text-xs font-medium tabular-nums text-slate-600">{d.valor > 0 ? quetzales(d.valor).replace(/\.00$/, "") : "—"}</span>
           <span
-            className={`block w-full rounded-t-md ${i === resaltar ? "bg-blue-700" : "bg-blue-200"}`}
+            className={`block w-full rounded-t-md ${i === resaltar ? "bg-gradient-to-t from-blue-700 to-sky-400" : "bg-blue-100"}`}
             style={{ height: `${Math.max(d.valor > 0 ? 4 : 0, Math.round((d.valor / max) * 100))}%` }}
           />
           <span className="mt-2 text-xs text-slate-500">{d.etiqueta}</span>
@@ -200,17 +213,17 @@ export default async function AdminPage() {
         </div>
         <div className="flex flex-wrap gap-2 text-sm">
           {[["Nueva inscripción", "/admin/inscripciones/nueva"], ["Nuevo alumno", "/admin/alumnos/nuevo"], ["Cierre de caja de hoy", "/admin/caja"], ["Enviar recordatorios de mora", "/admin/morosos"]].map(([t, h]) => (
-            <Link key={h} href={h} className="rounded-full border border-slate-300 px-3 py-1 text-slate-700 hover:bg-slate-100">{t}</Link>
+            <Link key={h} href={h} className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-slate-700 hover:border-blue-600 hover:bg-blue-50 hover:text-blue-800">{t}</Link>
           ))}
         </div>
       </form>
 
       {/* Indicadores */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Kpi titulo="Cobrado hoy" valor={quetzales(sum(cobradoHoy))} detalle={`${cobradoHoy.length} ${cobradoHoy.length === 1 ? "recibo" : "recibos"}`} href="/admin/caja" />
-        <Kpi titulo={`Cobrado en ${MESES[m]}`} valor={quetzales(sum(cobradoMes))} detalle={pctMes === null ? "Sin cuotas este mes" : `${pctMes}% de las mensualidades del mes pagadas`} href="/admin/reportes" />
-        <Kpi titulo="En mora" valor={quetzales(deudaMora)} detalle={`${morosos.length} ${morosos.length === 1 ? "alumno" : "alumnos"}${cfg.diasGracia ? ` (con ${cfg.diasGracia} días de gracia)` : ""}`} tono={deudaMora > 0 ? "alerta" : "normal"} href="/admin/morosos" />
-        <Kpi titulo="Alumnos inscritos" valor={String(inscritos)} detalle={`${nuevos} ${nuevos === 1 ? "nuevo" : "nuevos"} en este ciclo`} href="/admin/alumnos" />
+        <Kpi titulo="Cobrado hoy" valor={quetzales(sum(cobradoHoy))} detalle={`${cobradoHoy.length} ${cobradoHoy.length === 1 ? "recibo" : "recibos"}`} href="/admin/caja" color="verde" icono="M3 7h18v11H3zM12 15a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+        <Kpi titulo={`Cobrado en ${MESES[m]}`} valor={quetzales(sum(cobradoMes))} detalle={pctMes === null ? "Sin cuotas este mes" : `${pctMes}% de las mensualidades del mes pagadas`} href="/admin/reportes" color="azul" icono="M5 20V11M12 20V4M19 20v-6" />
+        <Kpi titulo="En mora" valor={quetzales(deudaMora)} detalle={`${morosos.length} ${morosos.length === 1 ? "alumno" : "alumnos"}${cfg.diasGracia ? ` (con ${cfg.diasGracia} días de gracia)` : ""}`} tono={deudaMora > 0 ? "alerta" : "normal"} href="/admin/morosos" icono="M12 4 2.5 20h19L12 4ZM12 10v4M12 17v.01" />
+        <Kpi titulo="Alumnos inscritos" valor={String(inscritos)} detalle={`${nuevos} ${nuevos === 1 ? "nuevo" : "nuevos"} en este ciclo`} href="/admin/alumnos" color="violeta" icono="M16 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM4 21a8 8 0 0 1 16 0" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-5">

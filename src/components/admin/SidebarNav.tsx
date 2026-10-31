@@ -52,15 +52,32 @@ const GRUPOS: readonly { titulo: string | null; items: readonly Item[] }[] = [
   },
 ];
 
+type Tono = { dot: string; on: string; off: string };
+const TONOS: Record<string, Tono> = {
+  "": { dot: "bg-amber-300", on: "bg-amber-300 text-[#0f1b33]", off: "bg-amber-300/10 text-amber-300" },
+  Alumnado: { dot: "bg-sky-400", on: "bg-sky-400 text-[#0f1b33]", off: "bg-sky-400/10 text-sky-300" },
+  Caja: { dot: "bg-emerald-400", on: "bg-emerald-400 text-[#0f1b33]", off: "bg-emerald-400/10 text-emerald-300" },
+  Personal: { dot: "bg-violet-400", on: "bg-violet-400 text-[#0f1b33]", off: "bg-violet-400/10 text-violet-300" },
+  Calificaciones: { dot: "bg-orange-400", on: "bg-orange-400 text-[#0f1b33]", off: "bg-orange-400/10 text-orange-300" },
+  Sistema: { dot: "bg-slate-400", on: "bg-slate-300 text-[#0f1b33]", off: "bg-white/5 text-slate-300" },
+};
+
 export default function SidebarNav({ avisos = {} }: { avisos?: Record<string, number> }) {
   const pathname = usePathname();
   const activo = (href: string) => (href === "/admin" ? pathname === "/admin" : pathname.startsWith(href));
 
   return (
     <nav className="space-y-6 text-sm" aria-label="Principal">
-      {GRUPOS.map((g, i) => (
+      {GRUPOS.map((g, i) => {
+        const tono = TONOS[g.titulo ?? ""] ?? TONOS[""];
+        return (
         <div key={i}>
-          {g.titulo && <div className="mb-1.5 px-3 text-xs font-medium text-slate-400">{g.titulo}</div>}
+          {g.titulo && (
+            <div className="mb-1.5 flex items-center gap-2 px-3 text-xs font-medium text-slate-400">
+              <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${tono.dot}`} />
+              {g.titulo}
+            </div>
+          )}
           <ul className="space-y-0.5">
             {g.items.map(([texto, href, icono]) => {
               const on = activo(href);
@@ -70,15 +87,17 @@ export default function SidebarNav({ avisos = {} }: { avisos?: Record<string, nu
                   <Link
                     href={href}
                     aria-current={on ? "page" : undefined}
-                    className={`relative flex items-center gap-3 rounded-lg px-3 py-2 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-amber-300 ${
+                    className={`relative flex items-center gap-3 rounded-lg px-2 py-1.5 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-amber-300 ${
                       on
                         ? "bg-white/10 font-semibold text-white before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-full before:bg-amber-300"
                         : "text-slate-300 hover:bg-white/5 hover:text-white"
                     }`}
                   >
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={`shrink-0 ${on ? "text-amber-300" : "text-slate-400"}`}>
+                    <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors ${on ? tono.on : tono.off}`}>
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="shrink-0">
                       <path d={icono} />
                     </svg>
+                    </span>
                     <span className="flex-1">{texto}</span>
                     {aviso ? (
                       <span className="rounded-full bg-red-500 px-1.5 py-0.5 text-[11px] font-semibold leading-none text-white tabular-nums" aria-label={`${aviso} pendientes`}>
@@ -91,7 +110,8 @@ export default function SidebarNav({ avisos = {} }: { avisos?: Record<string, nu
             })}
           </ul>
         </div>
-      ))}
+        );
+      })}
     </nav>
   );
 }
