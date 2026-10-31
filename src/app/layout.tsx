@@ -21,7 +21,11 @@ export const metadata: Metadata = {
     "Sistema de gestion academica y contable del Colegio Nuevo Horizonte: inscripciones, cobros, notas y asistencia.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html
       lang="es"
