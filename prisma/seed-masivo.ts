@@ -126,7 +126,7 @@ async function main() {
 
   // 2. Alumnos
   let nuevos = 0;
-  for (let i = 0; i < CANTIDAD; i++) {
+  const procesar = async (i: number) => {
     const n = 100 + i;
     const apellido1 = APELLIDOS[i % APELLIDOS.length];
     const apellido2 = elegir(APELLIDOS);
@@ -143,8 +143,9 @@ async function main() {
         encargadoCorreo: `encargado${n}@correo.test`,
       },
     });
-    if (existente && (await prisma.inscripcion.count({ where: { alumnoId: alumno.id } })) > 0) continue;
-    nuevos++;
+    const previa = await prisma.inscripcion.findFirst({ where: { alumnoId: alumno.id, cicloId: ciclo.id } });
+    if (previa && (await prisma.nota.count({ where: { inscripcionId: previa.id } })) > 0) return; // ya está completo
+    if (!previa) nuevos++;
 
     const seccion = secciones[i % secciones.length];
     // Perfil de pago y de rendimiento
@@ -156,7 +157,7 @@ async function main() {
     const nivel = Math.max(25, Math.min(99, Math.round(72 + (rnd() + rnd() + rnd() - 1.5) * 40)));
     const metodo = elegir(METODOS);
 
-    const ins = await prisma.$transaction(async (tx) => {
+    const ins = previa ?? await prisma.$transaction(async (tx) => {
       const ins = await tx.inscripcion.create({
         data: {
           alumnoId: alumno.id, seccionId: seccion.id, cicloId: ciclo.id,
@@ -170,27 +171,29 @@ async function main() {
       return ins;
     }, { maxWait: 60_000, timeout: 120_000 });
 
-    // Notas de los bimestres I y II
+    // Notas de los bimestres I y II (en bloque: una sola ida a la base)
+    const notas: Prisma.NotaCreateManyInput[] = [];
     for (const asig of seccion.asignaciones) {
       for (const periodo of periodos.slice(0, 2)) {
         const total = Math.max(0, Math.min(100, nivel + entre(-8, 8)));
         const zona = Math.round(total * 0.7);
-        await prisma.nota.create({
-          data: {
-            inscripcionId: ins.id, cursoId: asig.cursoId, periodoId: periodo.id,
-            zona: zona.toFixed(2), examen: (total - zona).toFixed(2), valor: total.toFixed(2), registradaPorId: asig.maestroId,
-          },
+        notas.push({
+          inscripcionId: ins.id, cursoId: asig.cursoId, periodoId: periodo.id,
+          zona: zona.toFixed(2), examen: (total - zona).toFixed(2), valor: total.toFixed(2), registradaPorId: asig.maestroId,
         });
       }
     }
     if (periodos[0]) {
-      await prisma.boletaPeriodo.create({
-        data: {
-          inscripcionId: ins.id, periodoId: periodos[0].id, inasistencias: nivel < 50 ? entre(4, 9) : entre(0, 3),
-          conducta: nivel >= 90 ? CONDUCTAS[0] : nivel >= 75 ? CONDUCTAS[1] : nivel >= 60 ? CONDUCTAS[2] : nivel >= 45 ? CONDUCTAS[3] : CONDUCTAS[4],
-          comentario: null,
-        },
-      });
+      const ya = await prisma.boletaPeriodo.findFirst({ where: { inscripcionId: ins.id, periodoId: periodos[0].id } });
+      if (!ya) {
+        await prisma.boletaPeriodo.create({
+          data: {
+            inscripcionId: ins.id, periodoId: periodos[0].id, inasistencias: nivel < 50 ? entre(4, 9) : entre(0, 3),
+            conducta: nivel >= 90 ? CONDUCTAS[0] : nivel >= 75 ? CONDUCTAS[1] : nivel >= 60 ? CONDUCTAS[2] : nivel >= 45 ? CONDUCTAS[3] : CONDUCTAS[4],
+            comentario: null,
+          },
+        });
+      }
     }
 
     // Asistencia de los últimos 10 días hábiles
@@ -207,6 +210,23 @@ async function main() {
       }
     }
     await prisma.asistencia.createMany({ data: filas, skipDuplicates: true });
+    await prisma.nota.createMany({ data: notas }); // al final: su existencia marca al alumno como completo
+  };
+
+  // Reintenta si la conexión con Neon se corta o la base está despertando
+  for (let i = 0; i < CANTIDAD; i++) {
+    for (let intento = 1; ; intento++) {
+      try {
+        await procesar(i);
+        break;
+      } catch (e) {
+        const code = (e as { code?: string }).code;
+        if (intento >= 6 || !["P1001", "P1002", "P1017", "P2028"].includes(code ?? "")) throw e;
+        console.log(`Alumno ${i + 1}: conexión interrumpida (${code}), reintentando (${intento}/5)...`);
+        await new Promise((r) => setTimeout(r, 4000));
+      }
+    }
+    if ((i + 1) % 10 === 0) console.log(`  ${i + 1} de ${CANTIDAD} procesados`);
   }
 
   const total = await prisma.alumno.count();
