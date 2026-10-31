@@ -14,8 +14,13 @@ import { aCentavos, deCentavos, hoyGT } from "../src/lib/cobros/utils";
 const prisma = new PrismaClient();
 
 const urlDb = (process.env.DATABASE_URL ?? "") + " " + (process.env.DIRECT_URL ?? "");
-if (process.env.NODE_ENV === "production" || /neon\.tech|production/i.test(urlDb)) {
-  console.error("SEED MASIVO DETENIDO: no puede ejecutarse en producción ni contra una base de Neon.");
+const esProduccion = process.env.NODE_ENV === "production" || /neon\.tech|production/i.test(urlDb);
+// Solo se permite en producción con confirmación explícita y contraseña propia
+if (esProduccion && (process.env.PERMITIR_SEED_PRODUCCION !== "si" || !process.env.MAESTRO_PASSWORD)) {
+  console.error(
+    "SEED MASIVO DETENIDO: la base parece de producción/Neon.\n" +
+      "Para cargarlo a propósito define PERMITIR_SEED_PRODUCCION=si y MAESTRO_PASSWORD (contraseña de los maestros de prueba).",
+  );
   process.exit(1);
 }
 
@@ -58,11 +63,11 @@ const MAESTROS = [
 ];
 
 async function main() {
-  const admin = await prisma.usuario.findUniqueOrThrow({ where: { email: "admin@colegio.test" } });
-  const demo = await prisma.maestro.findFirstOrThrow({ orderBy: { id: "asc" } });
+  const admin = await prisma.usuario.findFirstOrThrow({ where: { rol: "ADMIN" }, orderBy: { id: "asc" } });
+  const demo = await prisma.maestro.findFirst({ orderBy: { id: "asc" } });
   // Más maestros, cada uno con su usuario para poder iniciar sesión
   const hash = await bcrypt.hash(process.env.MAESTRO_PASSWORD ?? "Maestro2026!", 10);
-  const maestros = [demo];
+  const maestros = demo ? [demo] : [];
   for (const m of MAESTROS) {
     const usuario = await prisma.usuario.upsert({
       where: { email: m.email }, update: {},
@@ -74,7 +79,14 @@ async function main() {
     }));
   }
   let turno = 0;
-  const ciclo = await prisma.cicloEscolar.findFirstOrThrow({ where: { activo: true } });
+  const ciclo =
+    (await prisma.cicloEscolar.findFirst({ where: { activo: true } })) ??
+    (await prisma.cicloEscolar.upsert({ where: { anio: 2026 }, update: { activo: true }, create: { anio: 2026, activo: true } }));
+  for (const [i, nombre] of ["Bimestre I", "Bimestre II", "Bimestre III", "Bimestre IV"].entries()) {
+    await prisma.periodo.upsert({
+      where: { cicloId_numero: { cicloId: ciclo.id, numero: i + 1 } }, update: {}, create: { cicloId: ciclo.id, numero: i + 1, nombre },
+    });
+  }
   const periodos = await prisma.periodo.findMany({ where: { cicloId: ciclo.id }, orderBy: { numero: "asc" } });
   const cfg = await prisma.configuracion.upsert({ where: { id: 1 }, update: {}, create: { id: 1 } });
 
