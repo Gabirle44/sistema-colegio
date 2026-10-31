@@ -148,7 +148,11 @@ export default async function AdminHorariosPage({
 
           {/* Formulario para agregar nuevo bloque */}
           <FormBloqueHorario
-            asignaciones={asignaciones}
+            asignaciones={asignaciones.map((a) => ({
+              id: a.id,
+              curso: { id: a.curso.id, nombre: a.curso.nombre },
+              maestro: { id: a.maestro.id, nombres: a.maestro.nombres, apellidos: a.maestro.apellidos },
+            }))}
             seccionNombre={nombreSecCompleto}
           />
 
