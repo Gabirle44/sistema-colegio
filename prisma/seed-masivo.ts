@@ -143,7 +143,7 @@ async function main() {
         encargadoCorreo: `encargado${n}@correo.test`,
       },
     });
-    if (existente) continue;
+    if (existente && (await prisma.inscripcion.count({ where: { alumnoId: alumno.id } })) > 0) continue;
     nuevos++;
 
     const seccion = secciones[i % secciones.length];
@@ -168,7 +168,7 @@ async function main() {
       await generarCargos(tx, ins, ciclo.anio, cfg, hoy);
       await pagar(tx, ins.id, { pagaIns, meses, parcial, metodo, ref: metodo === "EFECTIVO" ? undefined : `REF-${n}${entre(100, 999)}` }, admin.id);
       return ins;
-    });
+    }, { maxWait: 60_000, timeout: 120_000 });
 
     // Notas de los bimestres I y II
     for (const asig of seccion.asignaciones) {
